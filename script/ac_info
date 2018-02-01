@@ -1,0 +1,26 @@
+#!/usr/bin/env python3
+import subprocess
+import lxml.etree as le
+import yaml
+
+ret = subprocess.check_output(
+    "system_profiler SPPowerDataType -xml", shell=True)
+
+
+def to_dict(n):
+    key = 'error'
+    ret = {}
+    for c in n:
+        if c.tag == 'key':
+            key = c.text
+        elif c.tag == 'string':
+            ret[key] = c.text
+    return ret
+
+
+root = le.fromstring(ret)
+for c in root.xpath('//dict'):
+    d = to_dict(c)
+    if 'sppower_ac_charger_information' in d.values():
+        for k, v in d.items():
+            print('{} = {}'.format(k, v))

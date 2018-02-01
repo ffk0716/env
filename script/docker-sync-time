@@ -1,0 +1,6 @@
+#!/bin/bash -e
+date
+docker run --rm --privileged alpine date
+date
+docker run --rm --privileged alpine hwclock -s
+

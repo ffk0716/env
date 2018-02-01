@@ -1,0 +1,32 @@
+#!/usr/bash
+
+alias cdscript='cd ~/work/project/iclink/script'
+alias lldb='PATH=/usr/bin lldb'
+function wcd
+{
+    file=$(which $1)
+    DIR=$(dirname $file)
+    cd $DIR
+}
+function wvi
+{
+    file=$(which $1)
+    vi $file
+}
+
+export caffe=/Users/eric/work/project/iclink/bmtap/bmtap2/build/bmnet/caffe_int8-prefix/src/caffe_int8-build/tools/caffe-d
+
+PATH=$PATH:~/work/project/iclink/script
+export CUDA_ROOT=/Users/eric/work/project/iclink/cuda_root
+export onnx2tg=/Users/eric/work/project/iclink/onnx/onnc/build/src/tools/onnx2tg/onnx2tg
+
+PATH=$PATH:/usr/local/Cellar/llvm/6.0.0/bin
+PATH=$PATH:/usr/local/Cellar/llvm/6.0.0/share/clang
+PATH=$PATH:~/work/project/iclink/script
+PATH=$PATH:~/work/project/iclink/onnx/bm-tools/scripts
+
+#model path
+export MODEL_ONNX=/Users/eric/work/project/iclink/onnx/onnx-model2
+export CUDA_ROOT=/Users/eric/work/project/iclink/cuda_root
+export BMNET_MODELS_PATH=/Users/eric/work/project/iclink/bmtap/bmnet_models
+#export GIT_LFS_SKIP_SMUDGE=1

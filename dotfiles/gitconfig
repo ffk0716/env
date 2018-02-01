@@ -1,0 +1,40 @@
+[core]
+	editor = vim
+	excludesfile = ~/.gitignore
+[merge]
+	tool = vimdiff
+[mergetool]
+	prompt = false
+[alias]
+	mt = mergetool
+	d = difftool
+	cp = cherry-pick
+[diff]
+	tool = vimdiff
+[difftool]
+	prompt = false
+[push]
+	default = simple
+[credential]
+	helper = store
+[user]
+	name = Eric Yu
+	email = ffk0716@gmail.com
+[includeIf "gitdir:iclink/"]
+    path = .gitconfig-work
+[gitreview]
+	username = eric.yu
+[color]
+	ui = auto
+[pager]
+	branch = false
+	stash = false
+	grep = false
+	diff = false
+	show = false
+	status = false
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true

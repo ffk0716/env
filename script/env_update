@@ -1,0 +1,5 @@
+#!/bin/bash -e
+pushd $ENV_ROOT
+    git stash 
+    git pull --rebase
+popd 
