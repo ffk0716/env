@@ -26,7 +26,6 @@ filetype plugin indent on    " required
 syntax on
 let &t_Co=256
 colorscheme molokai
-"let g:molokai_original = 1
 
 set cursorline
 highlight CursorLine cterm=none ctermbg=236 ctermfg=none
@@ -40,7 +39,7 @@ set expandtab
 set smartindent 
 set number
 set autoindent
-set clipboard=unnamed
+set clipboard^=unnamed,unnamedplus
 
 let mapleader=','
 set diffopt+=iwhite
