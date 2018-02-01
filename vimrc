@@ -45,8 +45,8 @@ let mapleader=','
 set diffopt+=iwhite
 map <Leader>w :w!<CR>
 map <Leader>q :qa!<CR>
-map <Leader>vi :tabnew ~/.vimrc<CR>
-map <Leader>s :source ~/.vimrc<CR>
+map <Leader>vi :tabnew ~/.vim/vimrc<CR>
+map <Leader>s :source ~/.vim/vimrc<CR>
 
 map <silent> <F4> :q<CR>
 map <silent> <F6> :NERDTreeToggle<CR>
