@@ -49,11 +49,12 @@ map <Leader>q :qa!<CR>
 map <Leader>vi :tabnew ~/.vim/vimrc<CR>
 map <Leader>s :source ~/.vim/vimrc<CR>
 
-map <silent> <F4> :q<CR>
-map <silent> <F6> :NERDTreeToggle<CR>
-map <silent> <F7> :set wrap!<CR>
-map <silent> <F8> :set number!<CR>
-map <silent> <F9> :vertical resize -5<CR>
+map <silent>  <F3> :Autoformat<CR>
+map <silent>  <F4> :q<CR>
+map <silent>  <F6> :NERDTreeToggle<CR>
+map <silent>  <F7> :set wrap!<CR>
+map <silent>  <F8> :set number!<CR>
+map <silent>  <F9> :vertical resize -5<CR>
 map <silent> <F10> :vertical resize +5<CR>
 
 
@@ -64,3 +65,6 @@ map <c-h> :tabp<CR>
 map <c-l> :tabn<CR>
 map <c-j> 6<c-e>
 map <c-k> 6<c-y>
+
+"let g:autoformat_verbosemode=1
+
