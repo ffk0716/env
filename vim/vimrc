@@ -33,11 +33,11 @@ highlight CursorLine cterm=none ctermbg=236 ctermfg=none
 set hlsearch
 
 
-set shiftwidth=4 
+set shiftwidth=4
 set tabstop=4
 set expandtab
 
-set smartindent 
+set smartindent
 set number
 set autoindent
 set clipboard^=unnamed,unnamedplus
@@ -49,6 +49,7 @@ map <Leader>q :qa!<CR>
 map <Leader>vi :tabnew ~/.vim/vimrc<CR>
 map <Leader>s :source ~/.vim/vimrc<CR>
 
+map <silent>  <F2> :%s/\s\+$//e<CR>
 map <silent>  <F3> :Autoformat<CR>
 map <silent>  <F4> :q<CR>
 map <silent>  <F6> :NERDTreeToggle<CR>
