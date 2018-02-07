@@ -8,6 +8,8 @@ Plugin 'VundleVim/Vundle.vim'
 Plugin 'Chiel92/vim-autoformat'
 Plugin 'scrooloose/nerdtree'
 Plugin 'derekwyatt/vim-scala'
+Plugin 'taglist.vim'
+Plugin 'steffanc/cscopemaps.vim'
 Plugin 'molokai'
 call vundle#end()            " required
 filetype plugin indent on    " required
@@ -48,11 +50,13 @@ map <Leader>w :w!<CR>
 map <Leader>q :qa!<CR>
 map <Leader>vi :tabnew ~/.vim/vimrc<CR>
 map <Leader>s :source ~/.vim/vimrc<CR>
+map <Leader>df :tabnew a.cxx<CR>:diffthis<CR>:vsp b.cxx<CR>:diffthis<CR>
 
 map <silent>  <F2> :%s/\s\+$//e<CR>
 map <silent>  <F3> :Autoformat<CR>
-map <silent>  <F4> :q<CR>
-map <silent>  <F6> :NERDTreeToggle<CR>
+map <silent>  <F4> :q!<CR>
+map <silent>  <F5> :TlistToggle<CR>
+map <silent>  <F6> :NERDTreeToggle<CR>:NERDTreeFind<CR>
 map <silent>  <F7> :set wrap!<CR>
 map <silent>  <F8> :set number!<CR>
 map <silent>  <F9> :vertical resize -5<CR>
@@ -68,4 +72,8 @@ map <c-j> 6<c-e>
 map <c-k> 6<c-y>
 
 "let g:autoformat_verbosemode=1
+let Tlist_Show_One_File = 1
+let g:NERDTreeWinPos = "right"
+let NERDTreeShowBookmarks=1
+
 
