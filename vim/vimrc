@@ -42,7 +42,7 @@ set expandtab
 set smartindent
 set number
 set autoindent
-set clipboard^=unnamed,unnamedplus
+" set clipboard^=unnamed,unnamedplus
 
 let mapleader=','
 set diffopt+=iwhite
