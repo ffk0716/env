@@ -45,7 +45,7 @@ function parse_git_dirty {
     fi
 }
 
-PS1_base="\[\e[35m\]\u\[\e[m\]\[\e[35m\]@\[\e[m\]\[\e[35m\]\h\[\e[m\]\[\e[35m\]:\[\e[m\]\w\[\e[m\]"
+PS1_base="\[\e[35m\]\u\[\e[m\]\[\e[35m\]@\[\e[m\]\[\e[35m\]\h\[\e[m\]\[\e[35m\]:\[\e[m\]\W\[\e[m\]"
 PS1_git="\[\e[33m\]\`parse_git_branch\`\[\e[m\]"
 export PS1="$PS1_base$PS1_git$ "
 function psoff {
