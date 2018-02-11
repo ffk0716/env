@@ -56,7 +56,7 @@ map <silent>  <F2> :%s/\s\+$//e<CR>
 map <silent>  <F3> :Autoformat<CR>
 map <silent>  <F4> :q!<CR>
 map <silent>  <F5> :TlistToggle<CR>
-map <silent>  <F6> :NERDTreeToggle<CR>:NERDTreeFind<CR>
+map <silent>  <F6> :NERDTreeToggle<CR>
 map <silent>  <F7> :set wrap!<CR>
 map <silent>  <F8> :set number!<CR>
 map <silent>  <F9> :vertical resize -5<CR>
@@ -73,7 +73,11 @@ map <c-k> 6<c-y>
 
 "let g:autoformat_verbosemode=1
 let Tlist_Show_One_File = 1
+
+
 let g:NERDTreeWinPos = "right"
 let NERDTreeShowBookmarks=1
-
+" sets the working directory to the current file's directory
+" for NERDTreeToggle
+autocmd BufEnter * lcd %:p:h
 
