@@ -1,3 +1,3 @@
-
-ln -s $PWD/vim ~/.vim
-ln -s $PWD/.tmux.conf ~/.
+git submodule update --init --recursive
+ln -fs $PWD/vim ~/.vim
+ln -fs $PWD/.tmux.conf ~/.
