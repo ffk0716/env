@@ -10,3 +10,4 @@ git config --global difftool.prompt false
 git config --global alias.d difftool
 
 git config --global push.default simple
+git config --global credential.helper store
