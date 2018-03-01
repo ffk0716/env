@@ -1,4 +1,7 @@
 export ENV_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 alias gitk='gitk --all'
+alias eb='vi $ENV_ROOT/bashrc.private'
+alias sb='source ~/.bashrc'
+
 source $ENV_ROOT/bashrc.ps1
