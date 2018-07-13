@@ -18,5 +18,6 @@ curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
 vim +PlugInstall +qall
 
 # setup shell
+rm -f ~/.bashrc.sel
 echo add \"source $PWD/shell/bashrc.ubuntu\" in .bashrc
 

@@ -2,17 +2,6 @@
 
 alias cdscript='cd ~/work/project/iclink/script'
 alias lldb='PATH=/usr/bin lldb'
-function wcd
-{
-    file=$(which $1)
-    DIR=$(dirname $file)
-    cd $DIR
-}
-function wvi
-{
-    file=$(which $1)
-    vi $file
-}
 
 export caffe=/Users/eric/work/project/iclink/bmtap/bmtap2/build/bmnet/caffe_int8-prefix/src/caffe_int8-build/tools/caffe-d
 

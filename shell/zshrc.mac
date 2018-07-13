@@ -4,7 +4,6 @@ source $ENV_ROOT/shell/common/bashrc
 
 
 alias sb='source ~/.zshrc'
-alias eb='vi $ENV_ROOT/shell'
 
 export CLICOLOR='true'
 export LSCOLORS="gxfxcxdxcxegedabagacad"

@@ -1,5 +1,14 @@
 #!/usr/bash
 
+# handle bashrc selection
+rc_sel_path=
+if [ ! -f ~/.bashrc.sel ]; then
+    echo "~/.bashrc.sel not found! Creating one..."
+    cp ${ENV_ROOT}/shell/sel/bashrc.sel ~/.bashrc.sel
+fi
+source  ~/.bashrc.sel
+
+# alias
 alias vi='vim'
 alias ll='ls -hla'
 alias la='ls -a'
@@ -23,13 +32,19 @@ alias fg3='fg %3'
 alias grep='grep -I'
 alias cdenv="cd ${ENV_ROOT}"
 
+alias eb='vi $ENV_ROOT/shell/common/bashrc'
+
 
 PATH=$PATH:$ENV_ROOT/script
 
-rc_sel_path=${HOME}/.bashrc.sel
-if [ ! -f ${rc_sel_path} ]; then
-    echo "${rc_sel_path} not found! Creating one..."
-    cp ${ENV_ROOT}/shell/sel/bashrc.sel ${rc_sel_path}
-fi
-source ${rc_sel_path}
-alias ep="vi ${ENV_ROOT}/shell/sel/${RC_SEL}"
+function wcd
+{
+    file=$(which $1)
+    DIR=$(dirname $file)
+    cd $DIR
+}
+function wvi
+{
+    file=$(which $1)
+    vi $file
+}

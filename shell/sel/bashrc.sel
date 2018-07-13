@@ -7,6 +7,8 @@ if [ -z ${RC_SEL+x} ]; then
     echo RC_SEL not set!
     echo "Press enter to continue"
     read 
-    vi ${rc_sel_path}
+    vi ~/.bashrc.sel
 fi
+alias ep="vi ${ENV_ROOT}/shell/sel/${RC_SEL}"
+
 source ${ENV_ROOT}/shell/sel/${RC_SEL}

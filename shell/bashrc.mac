@@ -4,7 +4,6 @@ source $ENV_ROOT/shell/common/bashrc
 source $ENV_ROOT/shell/common/bashrc.ps1
 
 alias sb='source ~/.bash_profile'
-alias eb='vi $ENV_ROOT/shell'
 
 export CLICOLOR='true'
 export LSCOLORS="gxfxcxdxcxegedabagacad"
