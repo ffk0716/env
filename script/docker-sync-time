@@ -1,6 +1,11 @@
 #!/bin/bash -e
+echo before sync
 date
 docker run --rm --privileged alpine date
-date
+
 docker run --rm --privileged alpine hwclock -s
+
+echo after sync
+date
+docker run --rm --privileged alpine date
 
