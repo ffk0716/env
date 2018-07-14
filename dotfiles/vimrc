@@ -5,13 +5,13 @@ Plug 'derekwyatt/vim-scala'
 Plug 'drmikehenry/vim-headerguard'
 Plug 'godlygeek/tabular'
 Plug 'junegunn/vim-easy-align'
-Plug 'junegunn/vim-easy-align'
 Plug 'plasticboy/vim-markdown' "The tabular plugin must come before vim-markdown.
 Plug 'scrooloose/nerdtree'
 Plug 'steffanc/cscopemaps.vim'
 Plug 'tomasr/molokai'
 Plug 'tpope/vim-fugitive'
 Plug 'vim-scripts/taglist.vim'
+Plug 'airblade/vim-gitgutter'
 call plug#end()
 
 
