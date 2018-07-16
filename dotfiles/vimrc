@@ -114,3 +114,4 @@ nmap ga <Plug>(EasyAlign)
 "
 "nmap <c-]> :cs find d <C-R>=expand("<cword>")<CR>:<C-R>=line('.')<CR>:%<CR>
 
+set updatetime=100
