@@ -1,27 +1,18 @@
 #compdef my
 
-local -a subcmds
-subcmds=(\
-    'ac: show ac adapter info' \
-    'cm: run cmake and make' \
-    'docker-sync-time: sync time of docker' \
-    'update: udpate env')
-_describe 'command' subcmds
 
+ _alternative \
+   'args:custom arg:((
+   ac\:"show ac adapter inf"
+   cm\:"run cmake and make"
+   docker-sync-time\:"sync time of docker"
+   update\:"udpate env"
+   ))' \
+   'files:filename:_files'
+ #  'files:filename:_files'
+ if [[ ${words[(i)ac]} -le ${#words} ]]
+ then
+     _alternative \
+         'files:filename:_files'
+ fi
 
-#function _my {
-#    local line
-#
-#    cd $ENV_ROOT/script/sub
-#    sub=''
-#    for i in *; do 
-#        tempString="${i#my-}"
-#        sub="$sub $tempString"
-#    done
-#
-#    _arguments -C \
-#        "-h[Show help information]" \
-#        "--h[Show help information]" \
-#        "1: :( $sub )" \
-#        "*::arg:->args"
-#}
