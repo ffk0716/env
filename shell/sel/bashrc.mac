@@ -9,8 +9,11 @@ PATH=$PATH:/usr/local/Cellar/llvm/6.0.0/share/clang
 ######### for work
 PATH=$PATH:~/work/project/iclink/iclink-work/scripts
 PATH=$PATH:~/work/project/iclink/onnx/bm-tools/scripts
+PATH=/usr/local/opt/ccache/libexec:$PATH
 # model path
 export MODEL_ONNX=/Users/eric/work/project/iclink/onnx/onnx-model2
 export CUDA_ROOT=/Users/eric/work/project/iclink/cuda_root
 export BMNET_MODELS_PATH=/Users/eric/work/project/iclink/bmtap/bmnet_models
 #export GIT_LFS_SKIP_SMUDGE=1
+
+export LLVM_DIR=/usr/local/Cellar/llvm/6.0.1/lib/cmake
