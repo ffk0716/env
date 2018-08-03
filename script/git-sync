@@ -1,9 +1,0 @@
-#!/bin/bash -e
-#Git Submodule Sync
-
-git submodule foreach --recursive git reset --hard
-
-git submodule sync
-git submodule foreach --recursive git submodule sync
-git submodule update --init --recursive
-
