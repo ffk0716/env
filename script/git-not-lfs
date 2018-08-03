@@ -1,0 +1,2 @@
+#!/bin/bash -e
+{ git ls-files && git lfs ls-files | cut -d' ' -f3-; } | sort | uniq -u | xargs ls -lh
