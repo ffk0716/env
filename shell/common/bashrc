@@ -10,7 +10,7 @@ source  ~/.bashrc.sel
 
 # alias
 alias vi='vim'
-alias ll='ls -hla'
+alias ll='ls -hl'
 alias la='ls -a'
 alias rm='rm -i'
 alias gitk='gitk --all'
