@@ -1,8 +1,0 @@
-#!/usr/bash
-export ENV_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
-source $ENV_ROOT/shell/common/bashrc
-
-alias sb='source ~/.bashrc'
-
-alias ls='ls --color=auto'
-

@@ -1,12 +1,21 @@
 #!/usr/bash
 
 # handle bashrc selection
-rc_sel_path=
-if [ ! -f ~/.bashrc.sel ]; then
-    echo "~/.bashrc.sel not found! Creating one..."
-    cp ${ENV_ROOT}/shell/sel/bashrc.sel ~/.bashrc.sel
+HOST_NAME=$(hostname -s)
+if [[ "$HOST_NAME" = *Mac* ]]; then
+    export IS_MAC=true
+    export ENV_ROOT=$0:a:h/..
+    source $ENV_ROOT/shell/zshrc.mac
+    alias ep='vi $ENV_ROOT/shell/zshrc.mac'
+elif [[ "$HOST_NAME" = cuda* ]]; then
+    export IS_CUDA=true
+    export ENV_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
+    source $ENV_ROOT/shell/bashrc.cuda
+    alias ep='vi $ENV_ROOT/shell/bashrc.cuda'
+else
+    echo "unknow host $HOST_NAME"
 fi
-source  ~/.bashrc.sel
+
 
 # alias
 alias vi='vim'
@@ -32,7 +41,7 @@ alias fg3='fg %3'
 alias grep='grep -I'
 alias cdenv="cd ${ENV_ROOT}"
 
-alias eb='vi $ENV_ROOT/shell/common/bashrc'
+alias eb='vi $ENV_ROOT/shell/mainrc'
 
 
 PATH=$PATH:$ENV_ROOT/script

@@ -1,5 +1,10 @@
 #!/usr/bash
 
+alias sb='source ~/.bashrc'
+
+alias ls='ls --color=auto'
+
+
 source $ENV_ROOT/shell/common/bashrc.ps1
 
 alias h='history'
