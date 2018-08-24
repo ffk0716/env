@@ -7,8 +7,7 @@ alias rm='rm -i'
 export cb=~/work/tmp/clip
 git_repo=ssh://eric.yu@10.11.23.152:29418
 
-PATH=~/work/script:$PATH
-PATH=~/work/script2:$PATH
+PATH=~/work/iclink-work/scripts:$PATH
 
 # added by Anaconda3 installer
 #export PATH="/home/eric.yu/model/local/anaconda3/bin:$PATH"
