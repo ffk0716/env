@@ -20,3 +20,4 @@ export BMNET_MODELS_PATH=/Users/eric/work/project/iclink/bmtap/bmnet_models
 export LLVM_DIR=/usr/local/Cellar/llvm/6.0.1/lib/cmake
 
 export IN_DOCKER=false
+export IS_MAC=true

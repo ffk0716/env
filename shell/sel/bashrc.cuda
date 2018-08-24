@@ -27,3 +27,5 @@ PATH=~/work/project/iclink-misc/bin:$PATH
 PATH=$HOME/.local/bin:$PATH
 
 export BMNET_MODELS_PATH=/home/eric.yu/work/project/bmnet_models
+
+export IS_CUDA=true
