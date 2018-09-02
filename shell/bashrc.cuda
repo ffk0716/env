@@ -3,6 +3,7 @@
 alias sb='source ~/.bashrc'
 
 alias ls='ls --color=auto'
+alias cw='pushd ~/work/project/bmtap2/bmnet/regression'
 
 
 # source $ENV_ROOT/shell/common/bashrc.ps1
