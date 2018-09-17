@@ -1,15 +1,23 @@
 #!/usr/bash
 
 # handle bashrc selection
+if [[ "$SHELL " = *bash* ]]; then
+    export ENV_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
+elif [[ "$SHELL " = *zsh* ]]; then
+    export ENV_ROOT=$0:a:h/..
+fi
 HOST_NAME=$(hostname -s)
 if [[ "$HOST_NAME" = *Mac* ]]; then
     export IS_MAC=true
-    export ENV_ROOT=$0:a:h/..
-    source $ENV_ROOT/shell/zshrc.mac
-    alias ep='vi $ENV_ROOT/shell/zshrc.mac'
+    if [[ "$SHELL " = *bash* ]]; then
+        source $ENV_ROOT/shell/bashrc.mac
+        alias ep='vi $ENV_ROOT/shell/bashrc.mac'
+    elif [[ "$SHELL " = *zsh* ]]; then
+        source $ENV_ROOT/shell/zshrc.mac
+        alias ep='vi $ENV_ROOT/shell/zshrc.mac'
+    fi
 elif [[ "$HOST_NAME" = cuda* ]]; then
     export IS_CUDA=true
-    export ENV_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
     source $ENV_ROOT/shell/bashrc.cuda
     alias ep='vi $ENV_ROOT/shell/bashrc.cuda'
 else
