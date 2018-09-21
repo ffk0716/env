@@ -1,0 +1,1 @@
+scp -P12345 $1 eric@127.0.0.1:/Users/eric/work/tmp
