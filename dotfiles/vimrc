@@ -43,6 +43,7 @@ map <Leader>s :source ~/.vimrc<CR>
 map <Leader>df :tabnew a.cxx<CR>:diffthis<CR>:vsp b.cxx<CR>:diffthis<CR>
 map <Leader>c :NERDTreeFind<CR>
 map <Leader>n :let i=1 \| g//s//\=''.i/ \| let i=i+1<CR>
+map <Leader>r ciw<c-r>0<Esc>
 
 if &diff
     map gs :call IwhiteToggle()<CR>
