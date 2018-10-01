@@ -22,7 +22,7 @@ PATH=/usr/bin:$PATH
 
 #source ~/git-completion.bash
 
-PATH=~/work/source/git/git-2.16.1/install/bin:$PATH
+PATH=/home/eric.yu/work/source/git/git-2.19.0-install/bin:$PATH
 PATH=~/work/source/sbt/sbt/bin:$PATH
 
 export LLVM_HOME=~/work/source/llvm/llvm-source/install
