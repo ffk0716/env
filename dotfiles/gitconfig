@@ -22,6 +22,8 @@
 	email = ffk0716@gmail.com
 [includeIf "gitdir:iclink/"]
     path = .gitconfig-work
+[includeIf "gitdir:/home/eric.yu/work2/"]
+    path = .gitconfig-work
 [gitreview]
 	username = eric.yu
 [color]
