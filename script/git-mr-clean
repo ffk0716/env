@@ -9,7 +9,7 @@ then
     exit
 fi
 vi ${tmpfile}
-xargs git branch -d < ${tmpfile}
+xargs git branch -D < ${tmpfile}
 rm -fr ${tmpfile}
 
 
