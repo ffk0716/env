@@ -3,6 +3,11 @@
 git fetch -p --all
 tmpfile=$(mktemp /tmp/eric-temp.XXXXXX)
 git branch --merged origin/master | grep -v HEAD > ${tmpfile}
+if [ ! -s ${tmpfile} ]
+then
+    echo no merged branch
+    exit
+fi
 vi ${tmpfile}
 xargs git branch -d < ${tmpfile}
 rm -fr ${tmpfile}
