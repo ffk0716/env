@@ -1,0 +1,6 @@
+#!/bin/bash
+
+set -exu
+
+cur_branch=$(git cur)
+git push origin $cur_branch -uf

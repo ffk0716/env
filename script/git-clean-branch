@@ -1,9 +1,8 @@
-#!/bin/bash -e
+#!/bin/bash
 
 git fetch -p --all
-git checkout origin/master
 tmpfile=$(mktemp /tmp/eric-temp.XXXXXX)
-git branch --merged | grep -v HEAD > ${tmpfile}
+git branch --merged origin/master | grep -v HEAD > ${tmpfile}
 vi ${tmpfile}
 xargs git branch -d < ${tmpfile}
 rm -fr ${tmpfile}

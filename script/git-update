@@ -2,11 +2,8 @@
 
 set -eux
 
+git fetch -p --all
 git submodule sync --recursive
 git submodule update --init --recursive
-git clean -ffdx
-git reset --hard
-git r clean -ffdx
-git r reset --hard
 
 
