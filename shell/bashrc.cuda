@@ -4,6 +4,7 @@ alias sb='source ~/.bashrc'
 
 alias ls='ls --color=auto'
 alias cw='pushd ~/work/project/bmtap2'
+alias cdglow='pushd ~/work/project/glow'
 
 
 # source $ENV_ROOT/shell/common/bashrc.ps1
