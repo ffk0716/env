@@ -56,12 +56,20 @@ PATH=$PATH:$ENV_ROOT/script
 
 function wcd
 {
+    if [ $# -ne 1 ]; then
+        echo "only accpet 1 argument"
+        return 1
+    fi
     file=$(which $1)
     DIR=$(dirname $file)
     cd $DIR
 }
 function wvi
 {
+    if [ $# -ne 1 ]; then
+        echo "only accpet 1 argument"
+        return 1
+    fi
     file=$(which $1)
     vi $file
 }
