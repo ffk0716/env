@@ -1,6 +1,11 @@
-#!/bin/bash
+#!/bin/bash -e
 
-set -exu
+if [ $# -eq 0 ]; then
+    cur_branch=$(git cur)
+    git push origin $cur_branch -u
+    exit
+fi
 
-cur_branch=$(git cur)
-git push origin $cur_branch -u
+cmd=git-mr-$1
+shift
+$cmd $@

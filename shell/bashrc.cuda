@@ -3,7 +3,7 @@
 alias sb='source ~/.bashrc'
 
 alias ls='ls --color=auto'
-alias cw='pushd ~/work/project/bmtap2'
+alias cw='cd ~/work/project/bmtap2'
 alias cdglow='pushd ~/work/project/glow'
 
 
@@ -35,6 +35,7 @@ PATH=$HOME/.local/bin:$PATH
 
 export BMNET_MODELS_PATH=/home/eric.yu/work/project/bmnet_models
 
+export IN_DOCKER=false
 export IS_CUDA=true
 export GIT_SSL_NO_VERIFY=1
 export http_proxy=""
