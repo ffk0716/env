@@ -1,0 +1,4 @@
+#!/bin/bash
+set -exu
+
+git submodule update --init --recursive
