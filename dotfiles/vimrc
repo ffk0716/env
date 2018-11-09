@@ -83,7 +83,7 @@ let Tlist_Show_One_File = 1
 
 let g:NERDTreeWinPos = "right"
 let NERDTreeShowBookmarks=1
-let g:formatters_python = ['yapf', 'fail']
+let g:formatters_python = ['yapf', 'autopep8', 'fail']
 let g:formatters_cpp = ['clangformat', 'fail']
 
 " cscope
