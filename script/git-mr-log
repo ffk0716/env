@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cur=${1-HEAD}
-git log -1
+git log -1 ${cur}
 git log $(git merge-base ${cur}^1 ${cur}^2)..${cur}^2
 
 
