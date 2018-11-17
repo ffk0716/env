@@ -3,8 +3,11 @@
 alias sb='source ~/.bashrc'
 
 alias ls='ls --color=auto'
-alias cw='cd ~/work/project/bmtap2'
-alias cdglow='pushd ~/work/project/glow'
+alias cdt='cd ~/work/tmp'
+alias cdb='cd ~/work/project/bmtap2'
+alias cdr='cd /ai3/local/eric.yu/work/project/bmtap2/bmnet/tests/regression/build'
+alias ct='cd ~/work/tmp'
+alias cdg='cd ~/work/project/bmtap2/bmnet/external/glow'
 
 
 # source $ENV_ROOT/shell/common/bashrc.ps1
@@ -37,6 +40,6 @@ export BMNET_MODELS_PATH=/home/eric.yu/work/project/bmnet_models
 
 export IN_DOCKER=false
 export IS_CUDA=true
-export GIT_SSL_NO_VERIFY=1
+export GIT_SSL_NO_VERIFY=0
 export http_proxy=""
 export https_proxy=""
