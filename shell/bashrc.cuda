@@ -3,11 +3,6 @@
 alias sb='source ~/.bashrc'
 
 alias ls='ls --color=auto'
-alias cdt='cd ~/work/tmp'
-alias cdb='cd ~/work/project/bmtap2'
-alias cdr='cd /ai3/local/eric.yu/work/project/bmtap2/bmnet/tests/regression/build'
-alias ct='cd ~/work/tmp'
-alias cdg='cd ~/work/project/bmtap2/bmnet/external/glow'
 
 
 # source $ENV_ROOT/shell/common/bashrc.ps1
