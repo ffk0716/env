@@ -9,6 +9,7 @@
 	mt = mergetool
 	d = difftool
 	cp = cherry-pick
+	co = checkout
 [diff]
 	tool = vimdiff
 [difftool]

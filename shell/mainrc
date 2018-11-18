@@ -5,7 +5,11 @@ if [[ "$SHELL " = *bash* ]]; then
     export ENV_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
 elif [[ "$SHELL " = *zsh* ]]; then
     export ENV_ROOT=$0:a:h/..
+    alias sz='source ~/.zshrc'
+    alias ez='vi ~/.zshrc'
 fi
+
+#ep stand for edit persional rc
 HOST_NAME=$(hostname -s)
 if [[ "$HOST_NAME" = *Mac* ]]; then
     export IS_MAC=true
