@@ -1,9 +1,9 @@
 #!/bin/bash
 
-remote_branch=${1-master}
+remote_branch=${1-origin/master}
 git fetch -p --all
 tmpfile=$(mktemp /tmp/eric-temp.XXXXXX)
-git branch --merged origin/$remote_branch | grep -v HEAD > ${tmpfile}
+git branch --merged $remote_branch | grep -v HEAD > ${tmpfile}
 if [ ! -s ${tmpfile} ]
 then
     echo no merged branch
