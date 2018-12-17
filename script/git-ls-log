@@ -1,0 +1,8 @@
+#!/bin/bash
+set -ex
+
+remote_branch=${2-HEAD}
+base=$(git merge-base $1 $remote_branch)
+git log $base..$remote_branch
+
+
