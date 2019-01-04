@@ -1,0 +1,10 @@
+#!/bin/bash -e
+
+if [ $# -eq 0 ]; then
+    echo "No arguments provided"
+    exit 1
+fi
+
+cmd=dr-$1
+shift
+$cmd $@

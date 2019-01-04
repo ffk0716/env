@@ -1,0 +1,12 @@
+#!/bin/bash
+set -exu
+docker run \
+           --rm \
+           -it \
+           --privileged \
+           -v $HOME:$HOME:delegated \
+           -w $PWD \
+           -e TERM \
+           --user $(id -u):$(id -g) \
+           my/glow \
+           $@
