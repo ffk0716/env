@@ -1,32 +1,29 @@
 #!/usr/bash
 
+HOST_NAME=$(hostname -s)
+
 # handle bashrc selection
 if [[ "$SHELL " = *bash* ]]; then
     export ENV_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
+    if [[ "$HOST_NAME" = *Mac* ]]; then
+        export IS_MAC=true
+        source $ENV_ROOT/shell/bashrc.mac
+        alias ep='vi $ENV_ROOT/shell/bashrc.mac'
+    elif [[ "$HOST_NAME" = ubuntu-xenial ]]; then
+        source $ENV_ROOT/shell/bashrc.cuda
+        alias ep='vi $ENV_ROOT/shell/bashrc.cuda'
+    else
+        echo "unknow host $HOST_NAME"
+    fi
 elif [[ "$SHELL " = *zsh* ]]; then
     export ENV_ROOT=$0:a:h/..
     alias sz='source ~/.zshrc'
     alias ez='vi ~/.zshrc'
+    source $ENV_ROOT/shell/zshrc.mac
+    alias ep='vi $ENV_ROOT/shell/zshrc.mac'
 fi
 
 #ep stand for edit persional rc
-HOST_NAME=$(hostname -s)
-if [[ "$HOST_NAME" = *Mac* ]]; then
-    export IS_MAC=true
-    if [[ "$SHELL " = *bash* ]]; then
-        source $ENV_ROOT/shell/bashrc.mac
-        alias ep='vi $ENV_ROOT/shell/bashrc.mac'
-    elif [[ "$SHELL " = *zsh* ]]; then
-        source $ENV_ROOT/shell/zshrc.mac
-        alias ep='vi $ENV_ROOT/shell/zshrc.mac'
-    fi
-elif [[ "$HOST_NAME" = cuda* ]]; then
-    export IS_CUDA=true
-    source $ENV_ROOT/shell/bashrc.cuda
-    alias ep='vi $ENV_ROOT/shell/bashrc.cuda'
-else
-    echo "unknow host $HOST_NAME"
-fi
 
 
 # alias
