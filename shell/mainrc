@@ -1,32 +1,23 @@
 #!/usr/bash
 
-HOST_NAME=$(hostname -s)
 
 # handle bashrc selection
 if [[ "$SHELL " = *bash* ]]; then
     export ENV_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
-    export ENV_ROOT=$(realpath $ENV_ROOT)
-    if [[ "$HOST_NAME" = *Mac* ]]; then
-        export IS_MAC=true
-        source $ENV_ROOT/shell/bashrc.mac
-        alias ep='vi $ENV_ROOT/shell/bashrc.mac'
-    elif [[ "$HOST_NAME" = ubuntu-xenial ]]; then
-        source $ENV_ROOT/shell/bashrc.cuda
-        alias ep='vi $ENV_ROOT/shell/bashrc.cuda'
-    else
-        echo "unknow host $HOST_NAME"
+    if hash realpath >& /dev/null; then
+        export ENV_ROOT=$(realpath $ENV_ROOT)
     fi
+    alias sb='source ~/.bashrc'
+    alias eb='vi ~/.bashrc'
 elif [[ "$SHELL " = *zsh* ]]; then
     export ENV_ROOT=$0:a:h/..
     export ENV_ROOT=$(realpath $ENV_ROOT)
-    alias sz='source ~/.zshrc'
-    alias ez='vi ~/.zshrc'
-    source $ENV_ROOT/shell/zshrc.mac
-    alias ep='vi $ENV_ROOT/shell/zshrc.mac'
+    alias sb='source ~/.zshrc'
+    alias eb='vi ~/.zshrc'
 fi
 
-#ep stand for edit persional rc
-
+source $ENV_ROOT/shell/$1
+alias ep="vi $ENV_ROOT/shell/$1"
 
 # alias
 alias vi='vim'
@@ -51,8 +42,6 @@ alias fg2='fg %2'
 alias fg3='fg %3'
 alias grep='grep -I'
 alias cdenv="cd ${ENV_ROOT}"
-
-alias eb='vi $ENV_ROOT/shell/mainrc'
 
 
 PATH=$PATH:$ENV_ROOT/script
