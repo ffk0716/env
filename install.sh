@@ -6,18 +6,26 @@ pushd dotfiles > /dev/null
     for file in *
     do
         if [ -f ~/.$file ]; then
-            if ! cmp -s $PWD/$file ~/.$file ; then
+            if cmp -s $PWD/$file ~/.$file ; then
+                echo $file: skipped
+            else
                 if [ -f ~/.$file.bk ]; then
-                    echo "sorry, ~/.$file.bk exist, can't backup"
+                    echo "$file: sorry, ~/.$file.bk exist, can't backup"
                     exit 1
+                else
+                    echo $file: backuped, installed
+                    mv ~/.$file ~/.$file.bk
+                    ln -fs $PWD/$file ~/.$file
                 fi 
-                mv ~/.$file ~/.$file.bk
             fi
+        else
+            echo $file: installed
+            ln -fs $PWD/$file ~/.$file
         fi 
-        ln -fs $PWD/$file ~/.$file
     done
 popd > /dev/null
 
+echo
 echo setup vim
 curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
     https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
