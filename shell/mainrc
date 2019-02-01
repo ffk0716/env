@@ -4,16 +4,15 @@
 # handle bashrc selection
 if [[ "$SHELL " = *bash* ]]; then
     export ENV_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
-    if hash realpath >& /dev/null; then
-        export ENV_ROOT=$(realpath $ENV_ROOT)
-    fi
     alias sb='source ~/.bashrc'
     alias eb='vi ~/.bashrc'
 elif [[ "$SHELL " = *zsh* ]]; then
     export ENV_ROOT=$0:a:h/..
-    export ENV_ROOT=$(realpath $ENV_ROOT)
     alias sb='source ~/.zshrc'
     alias eb='vi ~/.zshrc'
+fi
+if hash realpath >& /dev/null; then
+    export ENV_ROOT=$(realpath $ENV_ROOT)
 fi
 
 source $ENV_ROOT/shell/$1

@@ -12,6 +12,7 @@ Plug 'tomasr/molokai'
 Plug 'tpope/vim-fugitive'      "A Git wrapper so awesome
 Plug 'vim-scripts/taglist.vim'
 Plug 'airblade/vim-gitgutter'
+Plug 'majutsushi/tagbar'
 call plug#end()
 
 
@@ -63,13 +64,14 @@ map <silent>  <F3> :Autoformat<CR>
 map <silent>  <F4> :q!<CR>
 map <silent>  <F5> :TlistToggle<CR>
 map <silent>  <F5> :setlocal spell! spelllang=en_us<CR>
+map <silent>  <F5> :TagbarToggle<CR>
 map <silent>  <F6> :NERDTreeToggle<CR>
 map <silent>  <F7> :set wrap!<CR>
 map <silent>  <F8> :set number!<CR>
 map <silent>  <F9> :vertical resize -5<CR>
 map <silent> <F10> :vertical resize +5<CR>
 
-
+let g:tagbar_left=1
 map H <c-w>h
 map L <c-w>l
 
