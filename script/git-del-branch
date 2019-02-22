@@ -1,0 +1,12 @@
+#!/bin/bash
+set -eu
+
+tmpfile=$(mktemp /tmp/eric-temp.XXXXXX)
+git branch -l "*$1*" > ${tmpfile}
+if [ ! -s ${tmpfile} ]
+then
+    echo no del branch
+    exit
+fi
+vi ${tmpfile}
+cat ${tmpfile} | xargs git branch -D
