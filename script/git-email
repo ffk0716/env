@@ -8,5 +8,18 @@ fi
 
 
 cmd=git-email-$1
-shift
-$cmd $@
+
+if [ $# -eq 1 ]; then
+    echo set local config
+    $cmd
+elif [ $# -eq 2 ]; then
+    local_config_file=$HOME/.gitconfig-local
+    email_config_file=$HOME/.gitconfig-$1
+    cur_path=$(realpath $2)
+
+    echo set $local_config_file with path: $cur_path
+    git config -f $local_config_file includeIf.gitdir:$cur_path/.path $email_config_file
+    touch $email_config_file
+    $cmd "-f $email_config_file"
+fi
+
