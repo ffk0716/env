@@ -1,4 +1,10 @@
-#!/bin/bash -e
+#!/bin/bash
+set -e
+
+if [ $# -eq 0 ]; then
+    echo "No arguments provided"
+    exit 1
+fi
 
 
 cmd=git-email-$1
