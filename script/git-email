@@ -1,0 +1,6 @@
+#!/bin/bash -e
+
+
+cmd=git-email-$1
+shift
+$cmd $@

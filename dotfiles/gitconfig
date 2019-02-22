@@ -18,11 +18,6 @@
 	default = simple
 [credential]
 	helper = store
-[user]
-	name = Eric Yu
-	email = ffk0716@gmail.com
-[includeIf "gitdir:nvidia/"]
-    path = .gitconfig-nvidia
 [gitreview]
 	username = eric.yu
 [color]
