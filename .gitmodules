@@ -1,0 +1,3 @@
+[submodule "p4-wrapper"]
+	path = p4-wrapper
+	url = git@github.com:ffk0716/p4-wrapper.git

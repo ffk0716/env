@@ -64,3 +64,5 @@ function wvi
     file=$(which $1)
     vi $file
 }
+
+PATH=$PATH:$ENV_ROOT/p4-wrapper/commands
