@@ -2,4 +2,5 @@
 pushd $ENV_ROOT
     git stash 
     git pull --rebase
+    git submodule update --init --recursive
 popd 
