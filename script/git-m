@@ -1,0 +1,2 @@
+#!/bin/bash -e
+git symbolic-ref m refs/remotes/origin/master
