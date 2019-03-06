@@ -13,6 +13,7 @@ Plug 'tpope/vim-fugitive'      "A Git wrapper so awesome
 Plug 'vim-scripts/taglist.vim'
 Plug 'airblade/vim-gitgutter'
 Plug 'majutsushi/tagbar'
+Plug 'ludovicchabant/vim-gutentags'
 call plug#end()
 
 
@@ -120,3 +121,14 @@ nmap ga <Plug>(EasyAlign)
 "nmap <c-]> :cs find d <C-R>=expand("<cword>")<CR>:<C-R>=line('.')<CR>:%<CR>
 
 set updatetime=100
+
+
+"""""""""""""""" Plug 'ludovicchabant/vim-gutentags' """""""""""""""" 
+" support both gtags and ctags
+if executable('gtags-cscope') && executable('gtags')
+    let g:gutentags_modules = ['gtags_cscope']
+elseif executable('ctags')
+    let g:gutentags_modules = ['ctags']
+endif
+let g:gutentags_cache_dir = expand('~/.cache/tags') 
+
