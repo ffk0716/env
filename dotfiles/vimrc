@@ -1,19 +1,25 @@
 call plug#begin('~/.vim/plugged')
-Plug 'Chiel92/vim-autoformat'
-Plug 'aceofall/gtags.vim'
-Plug 'derekwyatt/vim-scala'
-Plug 'drmikehenry/vim-headerguard'
-Plug 'godlygeek/tabular'
-Plug 'junegunn/vim-easy-align'
-Plug 'plasticboy/vim-markdown' "The tabular plugin must come before vim-markdown.
-Plug 'scrooloose/nerdtree'
-Plug 'steffanc/cscopemaps.vim'
+" view
 Plug 'tomasr/molokai'
-Plug 'tpope/vim-fugitive'      "A Git wrapper so awesome
+" navigator
+Plug 'majutsushi/tagbar'            "browse the tags of the current file and get an overview of its structure
+Plug 'scrooloose/nerdtree'          "file system explorer
+" tags
+Plug 'ludovicchabant/vim-gutentags' "management of tags files
 Plug 'vim-scripts/taglist.vim'
-Plug 'airblade/vim-gitgutter'
-Plug 'majutsushi/tagbar'
-Plug 'ludovicchabant/vim-gutentags'
+" format
+Plug 'junegunn/vim-easy-align'      "A simple, easy-to-use Vim alignment plugin.
+Plug 'drmikehenry/vim-headerguard'
+Plug 'Chiel92/vim-autoformat'       "Format code with one button press
+Plug 'godlygeek/tabular'            "for vim-markdown
+Plug 'plasticboy/vim-markdown'      "The tabular plugin must come before vim-markdown.
+" SCM related
+Plug 'airblade/vim-gitgutter'       "shows a git diff in the 'gutter' (sign column)
+Plug 'tpope/vim-fugitive'           "A Git wrapper so awesome
+" deprecated
+"Plug 'derekwyatt/vim-scala'
+"Plug 'aceofall/gtags.vim'
+"Plug 'steffanc/cscopemaps.vim'
 call plug#end()
 
 
@@ -86,21 +92,26 @@ map <c-k> 6<c-y>
 let Tlist_Show_One_File = 1
 
 
+"""""""""""""""" Plug 'scrooloose/nerdtree' """"""""""""""""
 let g:NERDTreeWinPos = "right"
 let NERDTreeShowBookmarks=1
+
+
+"""""""""""""""" Plug 'Chiel92/vim-autoformat' """"""""""""""""
 let g:formatters_python = ['yapf', 'autopep8', 'fail']
 let g:formatters_cpp = ['clangformat', 'fail']
 
-" cscope
+
+"""""""""""""""" tags """"""""""""""""
 set cscopetag                  " 使用 cscope 作为 tags 命令
 set cscopeprg='gtags-cscope'   " 使用 gtags-cscope 代替 cscope
 
 " gtags
-let GtagsCscope_Auto_Load = 1
-let CtagsCscope_Auto_Map = 1
-let GtagsCscope_Quiet = 1
+"let GtagsCscope_Auto_Load = 1
+"let CtagsCscope_Auto_Map = 1
+"let GtagsCscope_Quiet = 1
 
-" markdown
+"""""""""""""""" Plug 'plasticboy/vim-markdown' """"""""""""""""
 filetype plugin on
 let g:vim_markdown_folding_disabled = 1
 " :HeaderDecrease:
@@ -112,14 +123,15 @@ let g:vim_markdown_folding_disabled = 1
 " :Toct: Same as :Toc but in a new tab.
 " :Tocv: Same as :Toc for symmetry with :Toch and :Tocv.
 
+
+"""""""""""""""" Plug 'junegunn/vim-easy-align' """"""""""""""""
 " Start interactive EasyAlign in visual mode (e.g. vipga)
 xmap ga <Plug>(EasyAlign)
-
 " Start interactive EasyAlign for a motion/text object (e.g. gaip)
 nmap ga <Plug>(EasyAlign)
 "
-"nmap <c-]> :cs find d <C-R>=expand("<cword>")<CR>:<C-R>=line('.')<CR>:%<CR>
 
+"""""""""""""""" Plug 'airblade/vim-gitgutter' """"""""""""""""
 set updatetime=100
 
 
