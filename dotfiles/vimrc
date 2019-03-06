@@ -6,7 +6,7 @@ Plug 'majutsushi/tagbar'            "browse the tags of the current file and get
 Plug 'scrooloose/nerdtree'          "file system explorer
 " tags
 Plug 'ludovicchabant/vim-gutentags' "management of tags files
-Plug 'vim-scripts/taglist.vim'
+Plug 'steffanc/cscopemaps.vim'      "cscope/vim key mappings
 " format
 Plug 'junegunn/vim-easy-align'      "A simple, easy-to-use Vim alignment plugin.
 Plug 'drmikehenry/vim-headerguard'
@@ -19,7 +19,7 @@ Plug 'tpope/vim-fugitive'           "A Git wrapper so awesome
 " deprecated
 "Plug 'derekwyatt/vim-scala'
 "Plug 'aceofall/gtags.vim'
-"Plug 'steffanc/cscopemaps.vim'
+"Plug 'vim-scripts/taglist.vim'
 call plug#end()
 
 
@@ -67,11 +67,11 @@ if &diff
 endif
 
 
-map <silent>  <F2> :%s/\s\+$//e<CR>
+"map <silent>  <F2> :%s/\s\+$//e<CR>
 map <silent>  <F3> :Autoformat<CR>
 map <silent>  <F4> :q!<CR>
-map <silent>  <F5> :TlistToggle<CR>
-map <silent>  <F5> :setlocal spell! spelllang=en_us<CR>
+"map <silent>  <F5> :TlistToggle<CR>
+"map <silent>  <F5> :setlocal spell! spelllang=en_us<CR>
 map <silent>  <F5> :TagbarToggle<CR>
 map <silent>  <F6> :NERDTreeToggle<CR>
 map <silent>  <F7> :set wrap!<CR>
