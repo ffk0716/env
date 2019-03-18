@@ -67,11 +67,10 @@ if &diff
 endif
 
 
-"map <silent>  <F2> :%s/\s\+$//e<CR>
+map <silent>  <F2> :setlocal spell! spelllang=en_us<CR>
 map <silent>  <F3> :Autoformat<CR>
 map <silent>  <F4> :q!<CR>
 "map <silent>  <F5> :TlistToggle<CR>
-"map <silent>  <F5> :setlocal spell! spelllang=en_us<CR>
 map <silent>  <F5> :TagbarToggle<CR>
 map <silent>  <F6> :NERDTreeToggle<CR>
 map <silent>  <F7> :set wrap!<CR>
@@ -144,3 +143,11 @@ elseif executable('ctags')
 endif
 let g:gutentags_cache_dir = expand('~/.cache/tags') 
 
+
+"""""""""""""""" spell check """""""""""""""" 
+" command and Vim will add it to its dictionary
+" zg
+" mark words as incorrect
+" zw
+" suggest a list of alternatives
+" z=
