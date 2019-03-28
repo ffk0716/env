@@ -2,6 +2,7 @@ call plug#begin('~/.vim/plugged')
 " view
 Plug 'tomasr/molokai'
 " navigator
+Plug 'kshenoy/vim-signature'        "to place, toggle and display marks
 Plug 'majutsushi/tagbar'            "browse the tags of the current file and get an overview of its structure
 Plug 'scrooloose/nerdtree'          "file system explorer
 " tags
