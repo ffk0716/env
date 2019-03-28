@@ -53,6 +53,8 @@ map <Leader>c :NERDTreeFind<CR>
 map <Leader>n :let i=1 \| g//s//\=''.i/ \| let i=i+1<CR>
 map <Leader>r ciw<c-r>0<Esc>
 map <Leader>sp :setlocal spell! spelllang=en_us<CR>
+" copy current path
+map <Leader>f :let @" = expand("%")<CR>
 vnoremap p "0p
 
 if &diff
@@ -94,6 +96,11 @@ let Tlist_Show_One_File = 1
 """""""""""""""" Plug 'scrooloose/nerdtree' """"""""""""""""
 let g:NERDTreeWinPos = "right"
 let NERDTreeShowBookmarks=1
+if isdirectory(".git")
+    let g:NERDTreeBookmarksFile = '.git/.NERDTreeBookmarks'
+elseif filereadable(".git") " for git worktree
+    let g:NERDTreeBookmarksFile = '.NERDTreeBookmarks'
+endif
 
 
 """""""""""""""" Plug 'Chiel92/vim-autoformat' """"""""""""""""
