@@ -1,0 +1,151 @@
+#!/usr/bin/env python3
+
+
+def sp(cmd, p=False):
+    print("+ " + cmd)
+    r = subprocess.check_output(cmd, shell=True).decode('ascii').strip()
+    if p:
+        print(r)
+    return r
+
+
+def git(cmd, p=False):
+    os.chdir(git_dir)
+    return sp("git " + cmd, p)
+
+
+def p4(cmd, p=False):
+    os.chdir(config['p4']['path'])
+    return sp("p4 " + cmd, p)
+
+
+def p4_dir(cmd, p=False):
+    os.chdir(config['p4']['path'])
+    return sp(cmd, p)
+
+
+def submit(sub_args):
+    parser = ArgumentParser('git p5 submit')
+    args = parser.parse_args(sub_args)
+
+    print("update git and check rebase")
+    git("fetch -p")
+    master = git("show-ref -s origin/master")
+    base = git("merge-base origin/master HEAD")
+    if base == master:
+        print("no rebase is needed")
+    else:
+        print("Rebase is required")
+        exit(1)
+
+    print("make patch")
+    git("diff HEAD~1 HEAD > patch.txt")
+
+    print("update/cleanup p4 and apply patch")
+    p4("sync")
+    p4("reconcile -eda")
+    p4("revert -w ./...")
+    p4_dir("patch -p1 < {}/patch.txt".format(git_dir))
+    p4("reconcile -eda")
+
+    def update_p4_desc(msg, CL=None):
+        if not CL:
+            cl_msg = ""
+        else:
+            cl_msg = CL
+        p4("change -o {} > p4_desc_old.log".format(cl_msg))
+        skip = False
+        with open('p4_desc_old.log', 'r') as fi:
+            with open('p4_desc_new.log', 'w') as fo:
+                for line in fi:
+                    if skip:
+                        if 'Files:\n' == line:
+                            fo.write(line)
+                            skip = False
+                        if 'REVIEW' in line:
+                            fo.write(line)
+                    else:
+                        if 'Description:\n' in line:
+                            fo.write(line)
+                            skip = True
+                            for l in msg.splitlines():
+                                if not 'p4id' in l:
+                                    fo.write("\t{}\n".format(l))
+                        else:
+                            fo.write(line)
+        p4id = p4("change -i -u < p4_desc_new.log")
+        p4id = p4id.split()[1]
+        if not CL:
+            return p4id
+        return None
+
+    log = git("log --format=%B -n 1")
+    if 'p4id' in log:
+        print("update old change")
+        for l in log.splitlines():
+            if 'p4id' in l:
+                p4id = l.split()[2]
+        print(p4id)
+        update_p4_desc(log, p4id)
+        p4("reopen -c {} ./...".format(p4id))
+    else:
+        print("create new change")
+        p4id = update_p4_desc(log)
+        print(p4id)
+        git("commit --amend -m \"{}\np4id = {}\"".format(log, p4id))
+        p4_dir("make review P4_CL={}".format(p4id))
+
+    p4("shelve -c {} -f".format(p4id))
+
+
+def set_config(sub_args):
+    parser = ArgumentParser('git p5 config')
+    parser.add_argument(
+        '-p', '--path', metavar='PATH', required=True, help='p4 path')
+    args = parser.parse_args(sub_args)
+    config = configparser.ConfigParser()
+    if not 'p4' in config:
+        config['p4'] = {}
+    config['p4']['path'] = os.path.abspath(args.path)
+    with open('p5.config', 'w') as configfile:
+        config.write(configfile)
+
+
+import subprocess, os
+from argparse import ArgumentParser
+import configparser
+from enum import Enum
+
+
+class sub_commands(Enum):
+    submit = 'submit'
+    config = 'config'
+    help = 'help'
+
+    def __str__(self):
+        return self.value
+
+
+sub_command_function = {
+    sub_commands.submit: submit,
+    sub_commands.config: set_config
+}
+
+parser = ArgumentParser()
+parser.add_argument(
+    'sub_command',
+    type=sub_commands,
+    choices=list(sub_commands),
+    help='git p5 subcommand')
+#parser.add_argument('commit_id', metavar='id', help='git commit id')
+#parser.add_argument('-p', '--p4dir', required=True, help='p4 dir')
+args, sub_args = parser.parse_known_args()
+
+if args.sub_command == sub_commands.help:
+    args.sub_command = sub_commands[sub_args[0]]
+    sub_args = [sub_args[0], '-h']
+
+config = configparser.ConfigParser()
+config.read('p5.config')
+git_dir = os.path.abspath(os.path.curdir)
+sub_command_function[args.sub_command](sub_args)
