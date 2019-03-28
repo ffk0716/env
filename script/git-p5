@@ -2,7 +2,8 @@
 
 
 def sp(cmd, p=False):
-    print("+ " + cmd)
+    if opts.debug:
+        print("+ " + cmd)
     r = subprocess.check_output(cmd, shell=True).decode('ascii').strip()
     if p:
         print(r)
@@ -26,22 +27,23 @@ def p4_dir(cmd, p=False):
 
 def submit(sub_args):
     parser = ArgumentParser('git p5 submit')
-    args = parser.parse_args(sub_args)
+    sub_opts = parser.parse_args(sub_args)
 
-    print("update git and check rebase")
+    if opts.debug:
+        print("update git and check rebase")
     git("fetch -p")
     master = git("show-ref -s origin/master")
     base = git("merge-base origin/master HEAD")
-    if base == master:
-        print("no rebase is needed")
-    else:
+    if base != master:
         print("Rebase is required")
         exit(1)
 
-    print("make patch")
+    if opts.debug:
+        print("make patch")
     git("diff HEAD~1 HEAD > patch.txt")
 
-    print("update/cleanup p4 and apply patch")
+    if opts.debug:
+        print("update/cleanup p4 and apply patch")
     p4("sync")
     p4("reconcile -eda")
     p4("revert -w ./...")
@@ -81,20 +83,19 @@ def submit(sub_args):
 
     log = git("log --format=%B -n 1")
     if 'p4id' in log:
-        print("update old change")
         for l in log.splitlines():
             if 'p4id' in l:
                 p4id = l.split()[2]
-        print(p4id)
         update_p4_desc(log, p4id)
         p4("reopen -c {} ./...".format(p4id))
     else:
         print("create new change")
         p4id = update_p4_desc(log)
-        print(p4id)
+        print("commit message changed!")
         git("commit --amend -m \"{}\np4id = {}\"".format(log, p4id))
         p4_dir("make review P4_CL={}".format(p4id))
 
+    print('p4id = {}'.format(p4id))
     p4("shelve -c {} -f".format(p4id))
 
 
@@ -102,11 +103,11 @@ def set_config(sub_args):
     parser = ArgumentParser('git p5 config')
     parser.add_argument(
         '-p', '--path', metavar='PATH', required=True, help='p4 path')
-    args = parser.parse_args(sub_args)
+    sub_opts = parser.parse_args(sub_args)
     config = configparser.ConfigParser()
     if not 'p4' in config:
         config['p4'] = {}
-    config['p4']['path'] = os.path.abspath(args.path)
+    config['p4']['path'] = os.path.abspath(sub_opts.path)
     with open('p5.config', 'w') as configfile:
         config.write(configfile)
 
@@ -137,15 +138,14 @@ parser.add_argument(
     type=sub_commands,
     choices=list(sub_commands),
     help='git p5 subcommand')
-#parser.add_argument('commit_id', metavar='id', help='git commit id')
-#parser.add_argument('-p', '--p4dir', required=True, help='p4 dir')
-args, sub_args = parser.parse_known_args()
+parser.add_argument('-d', '--debug', action='store_true', help='debug mode')
+opts, sub_args = parser.parse_known_args()
 
-if args.sub_command == sub_commands.help:
-    args.sub_command = sub_commands[sub_args[0]]
+if opts.sub_command == sub_commands.help:
+    opts.sub_command = sub_commands[sub_args[0]]
     sub_args = [sub_args[0], '-h']
 
 config = configparser.ConfigParser()
 config.read('p5.config')
 git_dir = os.path.abspath(os.path.curdir)
-sub_command_function[args.sub_command](sub_args)
+sub_command_function[opts.sub_command](sub_args)
