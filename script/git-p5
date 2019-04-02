@@ -88,6 +88,7 @@ def submit(sub_args):
                 p4id = l.split()[2]
         update_p4_desc(log, p4id)
         p4("reopen -c {} ./...".format(p4id))
+        p4("shelve -d -c {}".format(p4id))
     else:
         print("create new change")
         p4id = update_p4_desc(log)
