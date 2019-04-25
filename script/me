@@ -1,2 +1,3 @@
 #!/bin/bash
+set -euxo pipefail
 make $@ 2>&1 | less
