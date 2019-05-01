@@ -40,14 +40,16 @@ def submit(sub_args):
 
     if opts.debug:
         print("make patch")
-    git("diff HEAD~1 HEAD > patch.txt")
+    temp = tempfile.NamedTemporaryFile(prefix='p5_patch_', delete=False)
+    temp.close()
+    git("diff HEAD~1 HEAD > {}".format(temp.name))
 
     if opts.debug:
         print("update/cleanup p4 and apply patch")
     p4("sync")
     p4("reconcile -eda")
     p4("revert -w ./...")
-    p4_dir("patch -p1 < {}/patch.txt".format(git_dir))
+    p4_dir("patch -p1 < {}".format(temp.name))
     p4("reconcile -eda")
 
     def update_p4_desc(msg, CL=None):
@@ -117,6 +119,7 @@ import subprocess, os
 from argparse import ArgumentParser
 import configparser
 from enum import Enum
+import tempfile
 
 
 class sub_commands(Enum):
