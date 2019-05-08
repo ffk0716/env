@@ -17,7 +17,7 @@
 [difftool]
 	prompt = false
 [push]
-	default = simple
+	default = upstream
 [credential]
 	helper = store
 [gitreview]
