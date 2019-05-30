@@ -1,2 +1,3 @@
-#!/bin/bash -e
+#!/bin/bash
+set -exu
 git symbolic-ref m refs/remotes/origin/master
