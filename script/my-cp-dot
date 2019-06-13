@@ -1,0 +1,6 @@
+#!/bin/bash
+
+set -exu
+
+dot -T png -o $1.png $1
+scp -P12345 $1.png eric@127.0.0.1:/Users/eric/work/tmp
