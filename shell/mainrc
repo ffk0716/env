@@ -37,6 +37,7 @@ alias cd5='cd ../../../../../'
 alias fg1='fg %1'
 alias fg2='fg %2'
 alias fg3='fg %3'
+alias fg4='fg %4'
 alias grep='grep -I'
 alias cdenv="cd ${ENV_ROOT}"
 

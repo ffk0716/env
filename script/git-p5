@@ -35,8 +35,7 @@ def submit(sub_args):
     master = git("show-ref -s origin/master")
     base = git("merge-base origin/master HEAD")
     if base != master:
-        print("Rebase is required")
-        exit(1)
+        print("Rebase is required!")
 
     if opts.debug:
         print("make patch")
@@ -90,7 +89,10 @@ def submit(sub_args):
                 p4id = l.split()[2]
         update_p4_desc(log, p4id)
         p4("reopen -c {} ./...".format(p4id))
-        p4("shelve -d -c {}".format(p4id))
+        try:
+            p4("shelve -d -c {}".format(p4id))
+        except subprocess.CalledProcessError as grepexc:                                                                                                   
+            pass
     else:
         print("create new change")
         p4id = update_p4_desc(log)
