@@ -1,0 +1,4 @@
+#!/bin/bash
+set -euxo pipefail
+base_version=${1:-}
+git diff -U0 $base_version | clang-format-diff -i -p1 && git diff
