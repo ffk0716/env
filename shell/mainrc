@@ -6,7 +6,7 @@ if [[ "$SHELL " = *bash* ]]; then
     export ENV_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
     alias sb='source ~/.bashrc'
     alias eb='vi ~/.bashrc'
-elif [[ "$SHELL " = *zsh* ]]; then
+elif [[ -n "$ZSH_NAME" ]]; then
     export ENV_ROOT=$0:a:h/..
     alias sb='source ~/.zshrc'
     alias eb='vi ~/.zshrc'
