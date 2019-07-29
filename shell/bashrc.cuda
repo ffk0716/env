@@ -33,7 +33,6 @@ PATH=$HOME/.local/bin:$PATH
 
 export BMNET_MODELS_PATH=/home/eric.yu/work/project/bmnet_models
 
-export IN_DOCKER=false
 export IS_CUDA=true
 export GIT_SSL_NO_VERIFY=0
 export http_proxy=""
