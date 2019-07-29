@@ -1,0 +1,8 @@
+#!/bin/bash
+set -eu
+
+echo PATH:
+echo $PATH | awk -v RS=: '!($0 in a) {a[$0]; print}'
+
+echo LD_LIBRARY_PATH:
+echo $LD_LIBRARY_PATH | awk -v RS=: '!($0 in a) {a[$0]; print}'
