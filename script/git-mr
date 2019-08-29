@@ -1,11 +1,21 @@
-#!/bin/bash -e
+#!/usr/bin/env python3
 
-if [ $# -eq 0 ]; then
-    cur_branch=$(git cur)
-    git push origin $cur_branch -u
-    exit
-fi
+import argparse
+import subprocess
+parser = argparse.ArgumentParser()
 
-cmd=git-mr-$1
-shift
-$cmd $@
+parser.add_argument('-d', '--debug', action='store_true', help='debug mode')
+args, other_args = parser.parse_known_args()
+
+
+def call(cmd):
+    if args.debug:
+        print("+", cmd)
+    r = subprocess.run(cmd.split(), check=True, stdout=subprocess.PIPE).stdout.decode('ascii').strip()
+    if args.debug:
+        print(r)
+    return r
+
+
+cur_branch = call("git cur")
+call("git push origin {}:refs/heads/{} -u {}".format(cur_branch, cur_branch, " ".join(other_args)))
