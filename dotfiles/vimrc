@@ -15,7 +15,7 @@ Plug 'Chiel92/vim-autoformat'       "Format code with one button press
 Plug 'godlygeek/tabular'            "for vim-markdown
 Plug 'plasticboy/vim-markdown'      "The tabular plugin must come before vim-markdown.
 " SCM related
-Plug 'airblade/vim-gitgutter'       "shows a git diff in the 'gutter' (sign column)
+Plug 'airblade/vim-gitgutter'       "shows a git diff in the 'gutter' (sign column), turn off by :GitGutterDisable
 Plug 'tpope/vim-fugitive'           "A Git wrapper so awesome
 " deprecated
 "Plug 'derekwyatt/vim-scala'
@@ -69,7 +69,7 @@ if &diff
     endfunction
 endif
 
-
+set spell spelllang=en_us
 map <silent>  <F2> :setlocal spell! spelllang=en_us<CR>
 map <silent>  <F3> :Autoformat<CR>
 map <silent>  <F4> :q!<CR>
