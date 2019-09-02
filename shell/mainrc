@@ -43,6 +43,7 @@ alias cdenv="cd ${ENV_ROOT}"
 
 
 PATH=$PATH:$ENV_ROOT/script
+MANPATH="$ENV_ROOT/script/man:$MANPATH"
 
 function wcd
 {
