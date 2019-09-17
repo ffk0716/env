@@ -90,7 +90,6 @@ map <c-l> :tabn<CR>
 map <c-j> 6<c-e>
 map <c-k> 6<c-y>
 
-"let g:autoformat_verbosemode=1
 let Tlist_Show_One_File = 1
 
 
@@ -105,8 +104,14 @@ endif
 
 
 """""""""""""""" Plug 'Chiel92/vim-autoformat' """"""""""""""""
+"let g:autoformat_verbosemode=1
 let g:formatters_python = ['yapf', 'autopep8', 'fail']
 let g:formatters_cpp = ['clangformat', 'fail']
+let g:formatters_cuda = ['clangformat', 'fail']
+"To disable the fallback to vim's indent file, retabbing and removing trailing whitespace
+let g:autoformat_autoindent = 0
+let g:autoformat_retab = 0
+let g:autoformat_remove_trailing_spaces = 0
 
 
 """""""""""""""" tags """"""""""""""""
