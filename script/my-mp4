@@ -8,10 +8,8 @@ import humanize
 # Get input file name
 parser = argparse.ArgumentParser()
 parser.add_argument('input', nargs='+', help='input video')
-parser.add_argument(
-    '-r', '--remove', action="store_true", help='remove input video')
-parser.add_argument(
-    '-m', '--no-metadata', action="store_true", help='copy metadata')
+parser.add_argument('-r', '--remove', action="store_true", help='remove input video')
+parser.add_argument('-m', '--no-metadata', action="store_true", help='copy metadata')
 parser.add_argument('-n', '--dry', action="store_true", help='dry run')
 args = parser.parse_args()
 
@@ -24,12 +22,17 @@ def get_new_name(old_name):
     return file_name + new_ext
 
 
-def print_size(file_name):
-    s = os.path.getsize(file_name)
-    print("{}: {}".format(file_name, humanize.naturalsize(s)))
+def print_size(fa, fb):
+    sa = os.path.getsize(fa)
+    sb = os.path.getsize(fb)
+    s = "{:+.1f}%: {} -> {}: {} -> {}".format((sb - sa) / sa * 100, fa, fb, humanize.naturalsize(sa),
+                                              humanize.naturalsize(sb))
+    print(s)
+    return s
 
 
 # Transfer
+final_report = []
 for old_name in args.input:
     new_name = get_new_name(old_name)
     meta = {}
@@ -41,9 +44,12 @@ for old_name in args.input:
         stream.run()
 
         # Report
-        print_size(old_name)
-        print_size(new_name)
-
+        final_report.append(print_size(old_name, new_name))
         # Clean up
         if args.remove:
             os.remove(old_name)
+
+print("=== Final Report ===")
+if not args.dry:
+    for l in final_report:
+        print(l)
