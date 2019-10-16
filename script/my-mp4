@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+
+import argparse
+import os
+import ffmpeg
+import humanize
+
+# Get input file name
+parser = argparse.ArgumentParser()
+parser.add_argument('input', nargs='+', help='input video')
+parser.add_argument(
+    '-r', '--remove', action="store_true", help='remove input video')
+parser.add_argument(
+    '-m', '--no-metadata', action="store_true", help='copy metadata')
+parser.add_argument('-n', '--dry', action="store_true", help='dry run')
+args = parser.parse_args()
+
+
+def get_new_name(old_name):
+    new_ext = ".mp4"
+    file_name, file_ext = os.path.splitext(old_name)
+    if file_ext == new_ext:
+        file_name = file_name + '2'
+    return file_name + new_ext
+
+
+def print_size(file_name):
+    s = os.path.getsize(file_name)
+    print("{}: {}".format(file_name, humanize.naturalsize(s)))
+
+
+# Transfer
+for old_name in args.input:
+    new_name = get_new_name(old_name)
+    meta = {}
+    if not args.no_metadata:
+        meta.update({'map': 0, 'copy_unknown': None, 'map_metadata': 0})
+    stream = ffmpeg.input(old_name).output(new_name, **meta)
+    print("ffmpeg {}".format(' '.join(stream.get_args())))
+    if not args.dry:
+        stream.run()
+
+        # Report
+        print_size(old_name)
+        print_size(new_name)
+
+        # Clean up
+        if args.remove:
+            os.remove(old_name)
