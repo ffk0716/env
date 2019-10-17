@@ -11,6 +11,7 @@ parser.add_argument('input', nargs='+', help='input video')
 parser.add_argument('-r', '--remove', action="store_true", help='remove input video')
 parser.add_argument('-m', '--no-metadata', action="store_true", help='copy metadata')
 parser.add_argument('-n', '--dry', action="store_true", help='dry run')
+parser.add_argument('-v', '--verbose', action="store_true", help='verbose')
 args = parser.parse_args()
 
 
@@ -36,6 +37,8 @@ final_report = []
 for old_name in args.input:
     new_name = get_new_name(old_name)
     meta = {}
+    if not args.verbose:
+        meta.update({'loglevel': 'quiet', 'stats': None})
     if not args.no_metadata:
         meta.update({'map': 0, 'copy_unknown': None, 'map_metadata': 0})
     stream = ffmpeg.input(old_name).output(new_name, **meta)
@@ -49,7 +52,8 @@ for old_name in args.input:
         if args.remove:
             os.remove(old_name)
 
-print("=== Final Report ===")
-if not args.dry:
-    for l in final_report:
-        print(l)
+if len(args.input) > 1:
+    print("=== Final Report ===")
+    if not args.dry:
+        for l in final_report:
+            print(l)
