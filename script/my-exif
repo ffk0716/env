@@ -19,6 +19,7 @@ import argparse
 import glob
 import time
 import re
+from datetime import datetime
 
 # Get input file name
 parser = argparse.ArgumentParser("my exif")
@@ -26,18 +27,26 @@ parser.add_argument('input', nargs='+', help='input photo')
 parser.add_argument('-a', '--append', action="store_true", help='append original name')
 parser.add_argument('-n', '--dry', action="store_true", help='dry run')
 parser.add_argument('-v', '--verbose', action="store_true", help='verbose')
+parser.add_argument('-m', action="store_true", help='use modification time instead exif DateTimeOriginal')
 args = parser.parse_args()
 
-for file in args.input:
-    time = get_exif(file)["DateTimeOriginal"]
-    new_name = re.sub(r'(\d*):(\d*):(\d*) (\d*):(\d*):(\d*)', r'\1-\2-\3 \4.\5.\6', time)
-    #new_name = new_name.encode("utf-8")
-    filename, ext = os.path.splitext(file)
-    assert (ext == ".JPG" or ext == ".jpg")
-    new_name += ".jpg"
-    if file == new_name:
+for old_name in args.input:
+    if args.m:
+        a = os.path.getmtime(old_name)
+        date_time = datetime.fromtimestamp(a)
+        time = date_time.strftime("%Y-%m-%d %H.%M.%S")
+    else:
+        time = get_exif(old_name)["DateTimeOriginal"]
+        time = re.sub(r'(\d*):(\d*):(\d*) (\d*):(\d*):(\d*)', r'\1-\2-\3 \4.\5.\6', time)
+    filename, ext = os.path.splitext(old_name)
+    ext = ext.lower()
+    #assert (ext == ".JPG" or ext == ".jpg")
+    if args.append:
+        new_name = "{} {}{}".format(time, filename, ext)
+    else:
+        new_name = "{}{}".format(time, ext)
+    if old_name == new_name:
         continue
-    print('{} -> {}'.format(file, new_name))
+    print('{} -> {}'.format(old_name, new_name))
     if not args.dry:
-        if file != new_name:
-            os.rename(file, new_name)
+        os.rename(old_name, new_name)
