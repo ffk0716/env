@@ -26,8 +26,10 @@ def get_new_name(old_name):
 def print_size(fa, fb):
     sa = os.path.getsize(fa)
     sb = os.path.getsize(fb)
-    s = "{:+.1f}%: {} -> {}: {} -> {}".format((sb - sa) / sa * 100, fa, fb, humanize.naturalsize(sa),
-                                              humanize.naturalsize(sb))
+    fan, fae = os.path.splitext(fa)
+    _, fbe = os.path.splitext(fb)
+    s = "{:+.1f}%: {} -> {}: {}{{{} -> .mp4}}".format((sb - sa) / sa * 100, humanize.naturalsize(sa),
+                                                      humanize.naturalsize(sb), fan, fae, fbe)
     print(s)
     return s
 
