@@ -12,6 +12,7 @@ parser.add_argument('-r', '--remove', action="store_true", help='remove input vi
 parser.add_argument('-m', '--no-metadata', action="store_true", help='copy metadata')
 parser.add_argument('-n', '--dry', action="store_true", help='dry run')
 parser.add_argument('-v', '--verbose', action="store_true", help='verbose')
+parser.add_argument('--hevc', action="store_true", help='use h265')
 args = parser.parse_args()
 
 
@@ -43,6 +44,9 @@ for old_name in args.input:
         meta.update({'loglevel': 'quiet', 'stats': None})
     if not args.no_metadata:
         meta.update({'map': 0, 'copy_unknown': None, 'map_metadata': 0})
+    if args.hevc:
+        meta.update({'vcodec':'libx265'})
+        meta.update({'tag:v':'hvc1'})
     stream = ffmpeg.input(old_name).output(new_name, **meta)
     print("ffmpeg {}".format(' '.join(stream.get_args())))
     if not args.dry:
