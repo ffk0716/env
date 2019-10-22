@@ -13,6 +13,7 @@ parser.add_argument('-m', '--no-metadata', action="store_true", help='copy metad
 parser.add_argument('-n', '--dry', action="store_true", help='dry run')
 parser.add_argument('-v', '--verbose', action="store_true", help='verbose')
 parser.add_argument('--hevc', action="store_true", help='hevc')
+parser.add_argument('-y', action="store_true", help='overwrite output')
 args = parser.parse_args()
 
 
@@ -56,6 +57,8 @@ for old_name in args.input:
     # file name
     new_name = file_name + ".mp4"
     stream = ffmpeg.input(old_name).output(new_name, **meta)
+    if args.y:
+        stream = ffmpeg.overwrite_output(stream)
     assert (old_name != new_name)
     print("ffmpeg {}".format(' '.join(stream.get_args())))
     if not args.dry:
