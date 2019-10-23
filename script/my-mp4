@@ -14,7 +14,9 @@ parser.add_argument('-n', '--dry', action="store_true", help='dry run')
 parser.add_argument('-v', '--verbose', action="store_true", help='verbose')
 parser.add_argument('--hevc', action="store_true", help='hevc')
 parser.add_argument('--crf', type=int, help='CRF')
+parser.add_argument('-t', '--time', type=int, help='time')
 parser.add_argument('-y', action="store_true", help='overwrite output')
+parser.add_argument('-o', '--output', type=str, help='output file name')
 args = parser.parse_args()
 
 
@@ -47,13 +49,10 @@ for old_name in args.input:
     if not args.no_metadata:
         meta.update({'map': 0, 'copy_unknown': None, 'map_metadata': 0})
     # hevc setting
-    if args.crf:
+    if args.crf != None:
         crf = args.crf
     else:
-        if args.hevc:
-            crf = 20
-        else:
-            crf = 18
+        crf = 20
     if args.hevc:
         meta.update({'vcodec': 'libx265'})
         meta.update({'tag:v': 'hvc1'})
@@ -62,9 +61,14 @@ for old_name in args.input:
     else:
         meta.update({'crf': crf})
         file_name += ".h264"
+    if args.time != None:
+        meta.update({'t': args.time})
     file_name += ".crf{}".format(crf)
     # file name
-    new_name = file_name + ".mp4"
+    if args.output != None:
+        new_name = args.output
+    else:
+        new_name = file_name + ".mp4"
     stream = ffmpeg.input(old_name).output(new_name, **meta)
     if args.y:
         stream = ffmpeg.overwrite_output(stream)
