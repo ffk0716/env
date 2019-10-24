@@ -2,21 +2,15 @@
 
 
 # handle bashrc selection
-if [[ "$SHELL " = *bash* ]]; then
-    export ENV_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
-    alias sb='source ~/.bashrc'
-    alias eb='vi ~/.bashrc'
-elif [[ -n "$ZSH_NAME" ]]; then
-    export ENV_ROOT=$0:a:h/..
-    alias sb='source ~/.zshrc'
-    alias eb='vi ~/.zshrc'
-fi
-if hash realpath >& /dev/null; then
-    export ENV_ROOT=$(realpath $ENV_ROOT)
-fi
+#if [[ "$SHELL " = *bash* ]]; then
+#    export ENV_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
+#    alias sb='source ~/.bashrc'
+#    alias eb='vi ~/.bashrc'
+#fi
+#if hash realpath >& /dev/null; then
+#    export ENV_ROOT=$(realpath $ENV_ROOT)
+#fi
 
-source $ENV_ROOT/shell/$1
-alias ep="vi $ENV_ROOT/shell/$1"
 
 # alias
 alias vi='vim'

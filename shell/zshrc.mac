@@ -1,5 +1,9 @@
+export ENV_ROOT=$0:a:h/..
+
+source $ENV_ROOT/shell/common/mainrc 
 
 alias sb='source ~/.zshrc'
+alias eb="vi $0"
 
 export CLICOLOR='true'
 export LSCOLORS="gxfxcxdxcxegedabagacad"
