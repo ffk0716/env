@@ -1,10 +1,15 @@
-export ENV_ROOT=$0:a:h/..
+rc_path=$(dirname $(realpath $0))
+export ENV_ROOT=$(realpath $rc_path/..)
 
+# source common rc
+source $ENV_ROOT/shell/common/zshrc
 source $ENV_ROOT/shell/common/mainrc 
 
+# rc alias
 alias sb='source ~/.zshrc'
 alias eb="vi $0"
 
+# other
 export CLICOLOR='true'
 export LSCOLORS="gxfxcxdxcxegedabagacad"
 
