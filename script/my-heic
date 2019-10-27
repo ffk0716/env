@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+
+import argparse
+import os
+import ffmpeg
+import humanize
+
+# Get input file name
+parser = argparse.ArgumentParser()
+parser.add_argument('input', nargs='+', help='input video')
+parser.add_argument('-r', '--remove', action="store_true", help='remove input video')
+parser.add_argument('-n', '--dry', action="store_true", help='dry run')
+parser.add_argument('-v', '--verbose', action="store_true", help='verbose')
+args = parser.parse_args()
+
+
+def print_size(fa, fb):
+    sa = os.path.getsize(fa)
+    sb = os.path.getsize(fb)
+    fan, fae = os.path.splitext(fa)
+    _, fbe = os.path.splitext(fb)
+    s = "{:+.1f}%: {} -> {}: {}{{{} -> .heic}}".format((sb - sa) / sa * 100, humanize.naturalsize(sa),
+                                                       humanize.naturalsize(sb), fan, fae, fbe)
+    print(s)
+    return s
+
+
+import sub
+from wand.image import Image
+# Transfer
+for old_name in args.input:
+    file_name, _ = os.path.splitext(old_name)
+    new_name = file_name + ".heic"
+    assert (old_name != new_name)
+    sub.call(["convert", old_name, new_name], debug=args.verbose, dry=args.dry)
+    if not args.dry:
+        print_size(old_name, new_name)
+        if args.remove:
+            os.remove(old_name)
+    #with Image(filename = old_name) as i:
+    #    i.convert('heic').save(filename = new_name)
+    continue
