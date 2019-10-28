@@ -25,10 +25,13 @@ def print_size(fa, fb):
     return s
 
 
+import progressbar as pb
 import sub
 from wand.image import Image
+widgets = [pb.Counter(format='%(value)02d/%(max_value)d'), ' ', pb.Percentage(), ' ', pb.Bar(), ' ', pb.ETA()]
+pbar = pb.ProgressBar(widgets=widgets, redirect_stdout=True)
 # Transfer
-for old_name in args.input:
+for old_name in pbar(args.input):
     file_name, _ = os.path.splitext(old_name)
     new_name = file_name + ".heic"
     assert (old_name != new_name)
