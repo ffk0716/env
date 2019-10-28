@@ -24,6 +24,12 @@ def print_size(fa, fb):
     return s
 
 
+if len(args.input) == 1:
+    _, ext = os.path.splitext(args.input[0])
+    if ext == ".txt":
+        with open(args.input[0], 'r') as f:
+            args.input = f.read().splitlines()
+
 import progressbar as pb
 from wand.image import Image
 widgets = [

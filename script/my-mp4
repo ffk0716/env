@@ -47,7 +47,8 @@ for old_name in args.input:
     if not args.verbose:
         meta.update({'loglevel': 'quiet', 'stats': None})
     if not args.no_metadata:
-        meta.update({'map': 0, 'copy_unknown': None, 'map_metadata': 0})
+        meta.update({'map': 0})
+    meta.update({'copy_unknown': None, 'map_metadata': 0})
     # hevc setting
     if args.crf != None:
         crf = args.crf
