@@ -27,7 +27,6 @@ def print_size(fa, fb):
 
 import progressbar as pb
 import sub
-from wand.image import Image
 widgets = [
     pb.Counter(format='%(value)02d/%(max_value)d'), ' ',
     pb.Percentage(), ' ',
@@ -46,6 +45,3 @@ for old_name in pbar(args.input):
         print_size(old_name, new_name)
         if args.remove:
             os.remove(old_name)
-    #with Image(filename = old_name) as i:
-    #    i.convert('heic').save(filename = new_name)
-    continue
