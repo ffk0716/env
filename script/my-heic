@@ -2,7 +2,6 @@
 
 import argparse
 import os
-import ffmpeg
 import humanize
 
 # Get input file name
@@ -26,7 +25,7 @@ def print_size(fa, fb):
 
 
 import progressbar as pb
-import sub
+from wand.image import Image
 widgets = [
     pb.Counter(format='%(value)02d/%(max_value)d'), ' ',
     pb.Percentage(), ' ',
@@ -40,8 +39,10 @@ for old_name in pbar(args.input):
     file_name, _ = os.path.splitext(old_name)
     new_name = file_name + ".heic"
     assert (old_name != new_name)
-    sub.call(["convert", old_name, new_name], debug=args.verbose, dry=args.dry)
     if not args.dry:
+        Image(filename=old_name).convert('heic').save(filename=new_name)
         print_size(old_name, new_name)
         if args.remove:
             os.remove(old_name)
+    else:
+        print("{} -> {}".format(old_name, new_name))
