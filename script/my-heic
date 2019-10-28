@@ -19,8 +19,8 @@ def print_size(fa, fb):
     sb = os.path.getsize(fb)
     fan, fae = os.path.splitext(fa)
     _, fbe = os.path.splitext(fb)
-    s = "{:+.1f}%: {} -> {}: {}{{{} -> .heic}}".format((sb - sa) / sa * 100, humanize.naturalsize(sa),
-                                                       humanize.naturalsize(sb), fan, fae, fbe)
+    s = "{:.1f}%(1/{:.1f}): {} -> {}: {}{{{} -> .heic}}".format(sb / sa * 100, sa / sb, humanize.naturalsize(sa),
+                                                                humanize.naturalsize(sb), fan, fae, fbe)
     print(s)
     return s
 
