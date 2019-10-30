@@ -13,6 +13,7 @@
 	cp = cherry-pick
 	co = checkout
 	lg = log --graph --pretty=format:'%C(yellow)%h %Cred%ad %Cblue%an%Cgreen%d %Creset%s' --date=short
+	format = clang-format
 [diff]
 	tool = vimdiff
 [difftool]
