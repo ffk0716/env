@@ -73,3 +73,7 @@ export PATH=$PATH:/Users/eric/work/project/nvidia/nv-env
 
 
 # end
+
+# perforce
+export P4CONFIG=.p4config
+# 
