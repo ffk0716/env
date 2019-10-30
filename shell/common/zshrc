@@ -4,7 +4,7 @@
 # Path to your oh-my-zsh installation.
 export ZSH=~/.oh-my-zsh
 export TERM="xterm-256color"
-export TERM="screen-256color"
+#export TERM="screen-256color"
 
 # Set name of the theme to load. Optionally, if you set this to "random"
 # it'll load a random theme each time that oh-my-zsh is loaded.
@@ -70,65 +70,13 @@ POWERLEVEL9K_MODE='nerdfont-complete' # 使用 nerd font 時可以顯示更多 i
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
-    git 
     virtualenv
     z
     zsh-autosuggestions)
 ZSH_DISABLE_COMPFIX=true
 
 fpath=(/usr/local/share/zsh-completions $fpath)
-fpath=(/Users/eric/work/env/script $fpath)
-fpath=(/Users/eric/work/project/iclink/iclink-work/scripts $fpath)
+fpath=($ENV_ROOT/script $fpath)
 
 source $ZSH/oh-my-zsh.sh
 
-# User configuration
-
-# export MANPATH="/usr/local/man:$MANPATH"
-
-# You may need to manually set your language environment
-# export LANG=en_US.UTF-8
-
-# Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='mvim'
-# fi
-
-# Compilation flags
-# export ARCHFLAGS="-arch x86_64"
-
-# ssh
-# export SSH_KEY_PATH="~/.ssh/rsa_id"
-
-# Set personal aliases, overriding those provided by oh-my-zsh libs,
-# plugins, and themes. Aliases can be placed here, though oh-my-zsh
-# users are encouraged to define aliases within the ZSH_CUSTOM folder.
-# For a full list of active aliases, run `alias`.
-#
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
-#
-
-
-
-export PATH="/usr/local/opt/bison/bin:$PATH"
-export PATH="/usr/local/opt/llvm/bin:$PATH"
-export PATH=$PATH:/Users/eric/work/script
-
-
-export HOMEBREW_GITHUB_API_TOKEN=2d66d92fa5f7ac5694a77233ff3c070665fcea9b
-export LIBRARY_PATH=/usr/local/lib
-export CPLUS_INCLUDE_PATH=/usr/local/include
-
-export HALIDE_ROOT=/Users/eric/work/source/halide/halide
-
-export LC_ALL=zh_TW.UTF-8
-
-# NVIDIA
-export PATH=$PATH:/Users/eric/work/project/nvidia/nv-env
-
-
-# end

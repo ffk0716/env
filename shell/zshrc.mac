@@ -23,3 +23,53 @@ export LLVM_DIR=/usr/local/Cellar/llvm/6.0.1/lib/cmake
 
 PATH=$PATH:/Users/eric/.local/flutter/bin
 
+# User configuration
+
+# export MANPATH="/usr/local/man:$MANPATH"
+
+# You may need to manually set your language environment
+# export LANG=en_US.UTF-8
+
+# Preferred editor for local and remote sessions
+# if [[ -n $SSH_CONNECTION ]]; then
+#   export EDITOR='vim'
+# else
+#   export EDITOR='mvim'
+# fi
+
+# Compilation flags
+# export ARCHFLAGS="-arch x86_64"
+
+# ssh
+# export SSH_KEY_PATH="~/.ssh/rsa_id"
+
+# Set personal aliases, overriding those provided by oh-my-zsh libs,
+# plugins, and themes. Aliases can be placed here, though oh-my-zsh
+# users are encouraged to define aliases within the ZSH_CUSTOM folder.
+# For a full list of active aliases, run `alias`.
+#
+# Example aliases
+# alias zshconfig="mate ~/.zshrc"
+# alias ohmyzsh="mate ~/.oh-my-zsh"
+#
+
+
+
+export PATH="/usr/local/opt/bison/bin:$PATH"
+export PATH="/usr/local/opt/llvm/bin:$PATH"
+export PATH=$PATH:/Users/eric/work/script
+
+
+export HOMEBREW_GITHUB_API_TOKEN=2d66d92fa5f7ac5694a77233ff3c070665fcea9b
+export LIBRARY_PATH=/usr/local/lib
+export CPLUS_INCLUDE_PATH=/usr/local/include
+
+export HALIDE_ROOT=/Users/eric/work/source/halide/halide
+
+export LC_ALL=zh_TW.UTF-8
+
+# NVIDIA
+export PATH=$PATH:/Users/eric/work/project/nvidia/nv-env
+
+
+# end
