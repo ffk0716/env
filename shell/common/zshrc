@@ -2,9 +2,9 @@
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
 # Path to your oh-my-zsh installation.
+export ZSH=~/.oh-my-zsh
 export TERM="xterm-256color"
 export TERM="screen-256color"
-export ZSH=/Users/eric/.oh-my-zsh
 
 # Set name of the theme to load. Optionally, if you set this to "random"
 # it'll load a random theme each time that oh-my-zsh is loaded.
@@ -70,10 +70,10 @@ POWERLEVEL9K_MODE='nerdfont-complete' # 使用 nerd font 時可以顯示更多 i
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
-  z
-  zsh-autosuggestions
-  virtualenv
-)
+    git 
+    virtualenv
+    z
+    zsh-autosuggestions)
 ZSH_DISABLE_COMPFIX=true
 
 fpath=(/usr/local/share/zsh-completions $fpath)
