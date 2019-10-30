@@ -1,9 +1,8 @@
 
 # source common rc
+POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(context dir status virtualenv)
+source $ENV_ROOT/shell/common/zshrc
 source $ENV_ROOT/shell/common/mainrc 
 
-# rc alias
-alias sb='source ~/.zshrc'
-alias eb="vi $0"
 
 
