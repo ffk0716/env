@@ -1,0 +1,26 @@
+#!/usr/bin/env python3
+
+import argparse
+import os
+import humanize
+
+# Get input file name
+parser = argparse.ArgumentParser()
+parser.add_argument('input', nargs='+', help='input file')
+args = parser.parse_args()
+
+if len(args.input) == 1:
+    _, ext = os.path.splitext(args.input[0])
+    if ext == ".txt":
+        with open(args.input[0], 'r') as f:
+            args.input = f.read().splitlines()
+
+# Transfer
+total_size = 0
+import progressbar as pb
+widgets = [pb.Counter(format='%(value)02d/%(max_value)d'), ' ', pb.Percentage(), ' ', pb.Bar(), ' ']
+pbar = pb.ProgressBar(widgets=widgets, redirect_stdout=True)
+for name in pbar(args.input):
+    s = os.path.getsize(name)
+    total_size += s
+print("total size: {}".format(humanize.naturalsize(total_size)))
