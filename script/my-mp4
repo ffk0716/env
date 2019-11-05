@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 
 import argparse
-import os
 import ffmpeg
 import humanize
+import os
+import shutil
+import subprocess
+import tempfile
 
 # Get input file name
 parser = argparse.ArgumentParser()
@@ -37,9 +40,6 @@ def print_size(fa, fb):
                                                       humanize.naturalsize(sb), fan, fae, fbe)
     print(s)
     return s
-
-
-import subprocess
 
 
 def get_duration(file):
@@ -100,13 +100,15 @@ for old_name in args.input:
         else:
             print("{} exist with error={}, {}, {}, override".format(new_name, error, d1, d2))
 
-    stream = ffmpeg.input(old_name).output(new_name, **meta)
+    tmp_name = tempfile.mktemp(suffix=".mp4")
+    stream = ffmpeg.input(old_name).output(tmp_name, **meta)
     if args.y:
         stream = ffmpeg.overwrite_output(stream)
     assert (old_name != new_name)
     print("ffmpeg {}".format(' '.join(stream.get_args())))
     if not args.dry:
         stream.run()
+        shutil.move(tmp_name, new_name)
 
         # Report
         final_report.append(print_size(old_name, new_name))
