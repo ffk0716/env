@@ -39,6 +39,24 @@ def print_size(fa, fb):
     return s
 
 
+import subprocess
+
+
+def get_duration(file):
+    """Get the duration of a video using ffprobe."""
+    cmd = 'ffprobe -i "{}" -show_entries format=duration -v quiet -of csv="p=0"'.format(file)
+    try:
+        output = subprocess.check_output(
+            cmd,
+            shell=True,  # Let this run in the shell
+            stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as e:
+        print(e.output)
+        output = 0
+    # return round(float(output))  # ugly, but rounds your seconds up or down
+    return float(output)
+
+
 # Transfer
 final_report = []
 for old_name in args.input:
@@ -70,6 +88,18 @@ for old_name in args.input:
         new_name = args.output
     else:
         new_name = file_name + ".mp4"
+
+    # check for skip
+    if os.path.isfile(new_name):
+        d1 = get_duration(old_name)
+        d2 = get_duration(new_name)
+        error = abs(d1 - d2) / d1
+        if error < 0.01:
+            print("{} exist with error={}, skip".format(new_name, error))
+            continue
+        else:
+            print("{} exist with error={}, {}, {}, override".format(new_name, error, d1, d2))
+
     stream = ffmpeg.input(old_name).output(new_name, **meta)
     if args.y:
         stream = ffmpeg.overwrite_output(stream)
