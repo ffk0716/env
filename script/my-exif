@@ -1,23 +1,8 @@
 #!/usr/bin/env python3
 
-import PIL.Image
-from PIL.ExifTags import TAGS
-
-
-def get_exif(fn):
-    ret = {}
-    i = PIL.Image.open(fn)
-    info = i._getexif()
-    for tag, value in info.items():
-        if tag in TAGS:
-            ret[TAGS[tag]] = value
-    return ret
-
-
+import exiftool
 import os
 import argparse
-import glob
-import time
 import re
 from datetime import datetime
 
@@ -41,12 +26,12 @@ for old_name in args.input:
         with exiftool.ExifTool() as et:
             time = et.get_tag('CreateDate', old_name)
             time = re.sub(r'(\d*):(\d*):(\d*) (\d*):(\d*):(\d*)', r'\1-\2-\3 \4.\5.\6', time)
-    else:
-        time = get_exif(old_name)["DateTimeOriginal"]
-        time = re.sub(r'(\d*):(\d*):(\d*) (\d*):(\d*):(\d*)', r'\1-\2-\3 \4.\5.\6', time)
+    else:  # use exif
+        with exiftool.ExifTool() as et:
+            time = et.get_metadata(old_name)["EXIF:DateTimeOriginal"]
+            time = re.sub(r'(\d*):(\d*):(\d*) (\d*):(\d*):(\d*)', r'\1-\2-\3 \4.\5.\6', time)
     filename, ext = os.path.splitext(old_name)
     ext = ext.lower()
-    #assert (ext == ".JPG" or ext == ".jpg")
     if args.append:
         new_name = "{} {}{}".format(time, filename, ext)
     else:
