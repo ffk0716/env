@@ -1,1 +1,3 @@
-scp -P12345 $@ eric@127.0.0.1:/Users/eric/work/tmp
+#!/bin/bash
+set -exu
+scp -P12345 -rp $@ eric@127.0.0.1:/Users/eric/work/tmp
