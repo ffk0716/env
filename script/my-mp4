@@ -6,7 +6,6 @@ import humanize
 import os
 import shutil
 import subprocess
-import tempfile
 
 # Get input file name
 parser = argparse.ArgumentParser()
@@ -100,13 +99,15 @@ for old_name in args.input:
         else:
             print("{} exist with error={}, {}, {}, override".format(new_name, error, d1, d2))
 
-    tmp_name = tempfile.mktemp(suffix=".mp4")
+    tmp_name = "my-mp4-tmp.mp4"
     stream = ffmpeg.input(old_name).output(tmp_name, **meta)
     if args.y:
         stream = ffmpeg.overwrite_output(stream)
     assert (old_name != new_name)
     print("ffmpeg {}".format(' '.join(stream.get_args())))
     if not args.dry:
+        if os.path.isfile(tmp_name):
+            os.remove(tmp_name)
         stream.run()
         shutil.move(tmp_name, new_name)
 
