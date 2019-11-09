@@ -94,17 +94,6 @@ for old_name in args.input:
     else:
         new_name = file_name + ".mp4"
 
-    # check for skip
-    if os.path.isfile(new_name):
-        d1 = get_duration(old_name)
-        d2 = get_duration(new_name)
-        error = abs(d1 - d2) / d1
-        if error < 0.01:
-            print("{} exist with error={}, skip".format(new_name, error))
-            continue
-        else:
-            print("{} exist with error={}, {}, {}, override".format(new_name, error, d1, d2))
-
     tmp_name = "my-mp4-tmp.mp4"
     stream = ffmpeg.input(old_name).output(tmp_name, **meta)
     if args.y:
@@ -112,10 +101,22 @@ for old_name in args.input:
     assert (old_name != new_name)
     print("ffmpeg {}".format(' '.join(stream.get_args())))
     if not args.dry:
-        if os.path.isfile(tmp_name):
-            os.remove(tmp_name)
-        stream.run()
-        shutil.move(tmp_name, new_name)
+        # check for skip
+        skip = False
+        if os.path.isfile(new_name):
+            d1 = get_duration(old_name)
+            d2 = get_duration(new_name)
+            error = abs(d1 - d2) / d1
+            if error < 0.01:
+                print("{} exist with error={}, skip".format(new_name, error))
+                skip = True
+            else:
+                print("{} exist with error={}, {}, {}, override".format(new_name, error, d1, d2))
+        if not skip:
+            if os.path.isfile(tmp_name):
+                os.remove(tmp_name)
+            stream.run()
+            shutil.move(tmp_name, new_name)
 
         # Report
         final_report.append(print_size(old_name, new_name))

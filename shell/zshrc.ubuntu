@@ -11,5 +11,7 @@ alias eb="vi $0"
 
 export LANG=en_US.UTF-8
 
+unsetopt auto_cd
+
 
 
