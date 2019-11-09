@@ -56,6 +56,12 @@ def get_duration(file):
     return float(output)
 
 
+if len(args.input) == 1:
+    _, ext = os.path.splitext(args.input[0])
+    if ext == ".txt":
+        with open(args.input[0], 'r') as f:
+            args.input = f.read().splitlines()
+
 # Transfer
 final_report = []
 for old_name in args.input:
