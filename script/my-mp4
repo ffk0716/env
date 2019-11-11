@@ -6,6 +6,7 @@ import humanize
 import os
 import shutil
 import subprocess
+import tempfile
 
 # Get input file name
 parser = argparse.ArgumentParser()
@@ -61,10 +62,6 @@ if len(args.input) == 1:
     if ext == ".txt":
         with open(args.input[0], 'r') as f:
             args.input = f.read().splitlines()
-#clean up
-tmp_name = "my-mp4-tmp.mp4"
-if os.path.isfile(tmp_name):
-    os.remove(tmp_name)
 
 # Transfer
 final_report = []
@@ -98,6 +95,8 @@ for old_name in args.input:
     else:
         new_name = file_name + ".mp4"
 
+    tmp_name = tempfile.mktemp(suffix=".mp4")
+
     stream = ffmpeg.input(old_name).output(tmp_name, **meta)
     if args.y:
         stream = ffmpeg.overwrite_output(stream)
@@ -116,8 +115,11 @@ for old_name in args.input:
             else:
                 print("{} exist with error={}, {}, {}, override".format(new_name, error, d1, d2))
         if not skip:
+            if os.path.isfile(tmp_name):
+                os.remove(tmp_name)
             stream.run()
-            shutil.move(tmp_name, new_name)
+            shutil.copyfile(tmp_name, new_name)
+            os.remove(tmp_name)
 
         # Report
         final_report.append(print_size(old_name, new_name))

@@ -50,7 +50,8 @@ for old_name in pbar(args.input):
     assert (old_name != new_name)
     if not args.dry:
         Image(filename=old_name).convert('heic').save(filename=tmp_name)
-        shutil.move(tmp_name, new_name)
+        shutil.copyfile(tmp_name, new_name)
+        os.remove(tmp_name)
         print_size(old_name, new_name)
         if args.remove:
             os.remove(old_name)
