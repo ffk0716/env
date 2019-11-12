@@ -57,6 +57,22 @@ def get_duration(file):
     return float(output)
 
 
+def get_codec(file):
+    cmd = 'ffprobe -i "{}" -select_streams v:0 -show_entries stream=codec_name  -v quiet -of csv="p=0"'.format(file)
+    try:
+        output = subprocess.run(
+            cmd,
+            check=True,
+            shell=True,  # Let this run in the shell
+            stdout=subprocess.PIPE,
+        ).stdout.decode('utf-8').replace('\n', '')
+    except subprocess.CalledProcessError as e:
+        print(e.output)
+        output = None
+    # return round(float(output))  # ugly, but rounds your seconds up or down
+    return output
+
+
 if len(args.input) == 1:
     _, ext = os.path.splitext(args.input[0])
     if ext == ".txt":
@@ -66,7 +82,8 @@ if len(args.input) == 1:
 # Transfer
 final_report = []
 for old_name in args.input:
-    file_name, file_ext = os.path.splitext(old_name)
+    assert (os.path.isfile(old_name))
+    file_name, _ = os.path.splitext(old_name)
     meta = {}
     if not args.verbose:
         meta.update({'loglevel': 'quiet', 'stats': None})
@@ -101,30 +118,40 @@ for old_name in args.input:
     if args.y:
         stream = ffmpeg.overwrite_output(stream)
     assert (old_name != new_name)
+    c = get_codec(old_name)
+    print("==== {} ====".format(old_name))
+    print("code = {}".format(c))
     print("ffmpeg {}".format(' '.join(stream.get_args())))
-    if not args.dry:
-        # check for skip
-        skip = False
-        if os.path.isfile(new_name):
-            d1 = get_duration(old_name)
-            d2 = get_duration(new_name)
-            error = abs(d1 - d2) / d1
-            if error < 0.01:
-                print("{} exist with error={}, skip".format(new_name, error))
-                skip = True
-            else:
-                print("{} exist with error={}, {}, {}, override".format(new_name, error, d1, d2))
-        if not skip:
+    # check for skip
+    if args.hevc:
+        if c == 'hevc':
+            print("{} is hevc, skip".format(old_name))
+            continue
+    skip = False
+    if os.path.isfile(new_name):
+        d1 = get_duration(old_name)
+        d2 = get_duration(new_name)
+        error = abs(d1 - d2) / d1
+        if error < 0.01:
+            print("{} exist with error={}, skip".format(new_name, error))
+            skip = True
+        else:
+            print("{} exist with error=abs({} - {})={}, override".format(new_name, d1, d2, error))
+
+    if not skip:
+        if not args.dry:
             if os.path.isfile(tmp_name):
                 os.remove(tmp_name)
             stream.run()
             shutil.copyfile(tmp_name, new_name)
             os.remove(tmp_name)
 
-        # Report
+    # Report
+    if os.path.isfile(new_name):
         final_report.append(print_size(old_name, new_name))
-        # Clean up
-        if args.remove:
+    # Clean up
+    if args.remove:
+        if not args.dry:
             os.remove(old_name)
 
 if len(args.input) > 1:
