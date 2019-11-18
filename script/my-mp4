@@ -17,7 +17,7 @@ parser.add_argument('-n', '--dry', action="store_true", help='dry run')
 parser.add_argument('-v', '--verbose', action="store_true", help='verbose')
 parser.add_argument('--hevc', action="store_true", help='hevc')
 parser.add_argument('--crf', type=int, help='CRF')
-parser.add_argument('-t', '--time', type=int, help='time')
+parser.add_argument('-t', '--time', type=str, help='time')
 parser.add_argument('-y', action="store_true", help='overwrite output')
 parser.add_argument('-o', '--output', type=str, help='output file name')
 args = parser.parse_args()
@@ -90,6 +90,9 @@ for old_name in args.input:
     if not args.no_metadata:
         meta.update({'map': 0})
     meta.update({'copy_unknown': None, 'map_metadata': 0})
+    #meta.update({'tune': 'film'})
+    #meta.update({'preset': 'veryslow'})
+    #meta.update({'deinterlace': None})
     # hevc setting
     if args.crf != None:
         crf = args.crf
