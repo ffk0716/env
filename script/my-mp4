@@ -20,6 +20,7 @@ parser.add_argument('--crf', type=int, help='CRF')
 parser.add_argument('-t', '--time', type=str, help='time')
 parser.add_argument('-y', action="store_true", help='overwrite output')
 parser.add_argument('-o', '--output', type=str, help='output file name')
+parser.add_argument('-a', '--add', type=str, help='output file name')
 args = parser.parse_args()
 
 
@@ -93,6 +94,13 @@ for old_name in args.input:
     #meta.update({'tune': 'film'})
     #meta.update({'preset': 'veryslow'})
     #meta.update({'deinterlace': None})
+    if args.add != None:
+        a_args = args.add.split(",")
+        for a in a_args:
+            a = a.split("=")
+            if len(a) == 1:
+                a.append(None)
+            meta.update({a[0]: a[1]})
     # hevc setting
     if args.crf != None:
         crf = args.crf
