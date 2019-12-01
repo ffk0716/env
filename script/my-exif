@@ -28,16 +28,28 @@ for old_name in args.input:
             time = re.sub(r'(\d*):(\d*):(\d*) (\d*):(\d*):(\d*)', r'\1-\2-\3 \4.\5.\6', time)
     else:  # use exif
         with exiftool.ExifTool() as et:
-            time = et.get_metadata(old_name)["EXIF:DateTimeOriginal"]
+            exif_data = et.get_metadata(old_name)
+            if "QuickTime:MediaCreateDate" in exif_data:
+                time = exif_data["QuickTime:MediaCreateDate"]
+            else:
+                time = exif_data["EXIF:DateTimeOriginal"]
             time = re.sub(r'(\d*):(\d*):(\d*) (\d*):(\d*):(\d*)', r'\1-\2-\3 \4.\5.\6', time)
     filename, ext = os.path.splitext(old_name)
     ext = ext.lower()
+    new_name = time
     if args.append:
-        new_name = "{} {}{}".format(time, filename, ext)
-    else:
-        new_name = "{}{}".format(time, ext)
-    if old_name == new_name:
+        new_name = "{} {}".format(new_name, filename)
+    if old_name == new_name + ext:
         continue
+
+    new_name_try = new_name
+    file_count = 1
+    while os.path.isfile(new_name_try + ext):
+        new_name_try = "{}-{}".format(new_name, file_count)
+        file_count += 1
+    new_name = new_name_try
+    new_name = new_name + ext
+
     print('{} -> {}'.format(old_name, new_name))
     if not args.dry:
         os.rename(old_name, new_name)
