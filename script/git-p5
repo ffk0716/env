@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import sub
 
 
 def sp(cmd, p=False):
@@ -91,7 +92,7 @@ def submit(sub_args):
         p4("reopen -c {} ./...".format(p4id))
         try:
             p4("shelve -d -c {}".format(p4id))
-        except subprocess.CalledProcessError as grepexc:                                                                                                   
+        except subprocess.CalledProcessError as grepexc:
             pass
     else:
         print("create new change")
@@ -117,41 +118,42 @@ def set_config(sub_args):
         config.write(configfile)
 
 
+def unshelve(args):
+    if args.clean:
+        git_dir = os.path.abspath(os.path.curdir)
+        os.chdir(git_dir)
+        r = sub.call('git branch -a'.split(), args.debug)
+        for i in r.split('\n'):
+            i = i.strip()
+            if "p4-unshelved" in i:
+                sub.call('git update-ref -d refs/{}'.format(i).split(), debug=args.debug, dry=args.dry)
+
+
 import subprocess, os
 from argparse import ArgumentParser
 import configparser
 from enum import Enum
 import tempfile
 
-
-class sub_commands(Enum):
-    submit = 'submit'
-    config = 'config'
-    help = 'help'
-
-    def __str__(self):
-        return self.value
-
-
-sub_command_function = {
-    sub_commands.submit: submit,
-    sub_commands.config: set_config
-}
-
 parser = ArgumentParser()
-parser.add_argument(
-    'sub_command',
-    type=sub_commands,
-    choices=list(sub_commands),
-    help='git p5 subcommand')
 parser.add_argument('-d', '--debug', action='store_true', help='debug mode')
-opts, sub_args = parser.parse_known_args()
+parser.add_argument('-n', '--dry', action='store_true', help='dry run')
+subcmd = parser.add_subparsers(dest='dd')
+#submit
+parser_submit = subcmd.add_parser('submit')
+parser_submit.set_defaults(func=submit)
+#config
+parser_config = subcmd.add_parser('config')
+parser_config.set_defaults(func=set_config)
+#unshelve
+parser_config = subcmd.add_parser('unshelve')
+parser_config.set_defaults(func=unshelve)
+parser_config.add_argument('-c', '--clean', action='store_true', help='clean unshelved branch')
 
-if opts.sub_command == sub_commands.help:
-    opts.sub_command = sub_commands[sub_args[0]]
-    sub_args = [sub_args[0], '-h']
+#start parse
+args = parser.parse_args()
+args.func(args)
 
-config = configparser.ConfigParser()
-config.read('p5.config')
-git_dir = os.path.abspath(os.path.curdir)
-sub_command_function[opts.sub_command](sub_args)
+#config = configparser.ConfigParser()
+#config.read('p5.config')
+#git_dir = os.path.abspath(os.path.curdir)

@@ -53,6 +53,7 @@ map <Leader>df :tabnew a.cxx<CR>:diffthis<CR>:vsp b.cxx<CR>:diffthis<CR>
 map <Leader>c :NERDTreeFind<CR>
 map <Leader>n :let i=1 \| g//s//\=''.i/ \| let i=i+1<CR>
 map <Leader>r ciw<c-r>0<Esc>
+map <Leader>m do]c
 map <Leader>sp :setlocal spell! spelllang=en_us<CR>
 " copy current path
 map <Leader>f :let @" = expand("%")<CR>
@@ -79,6 +80,7 @@ map <silent>  <F6> :NERDTreeToggle<CR>
 map <silent>  <F7> :set wrap!<CR>
 map <silent>  <F8> :set number!<CR>
 map <silent>  <F9> :vertical resize -5<CR>
+map <silent>  <F9> do]c
 map <silent> <F10> :vertical resize +5<CR>
 
 let g:tagbar_left=1
