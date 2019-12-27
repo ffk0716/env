@@ -80,7 +80,6 @@ map <silent>  <F6> :NERDTreeToggle<CR>
 map <silent>  <F7> :set wrap!<CR>
 map <silent>  <F8> :set number!<CR>
 map <silent>  <F9> :vertical resize -5<CR>
-map <silent>  <F9> do]c
 map <silent> <F10> :vertical resize +5<CR>
 
 let g:tagbar_left=1

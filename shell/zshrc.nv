@@ -1,6 +1,7 @@
 
 # source common rc
 POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(context dir status virtualenv)
+POWERLEVEL9K_SHORTEN_DIR_LENGTH=8
 source $ENV_ROOT/shell/common/zshrc
 source $ENV_ROOT/shell/common/mainrc 
 
