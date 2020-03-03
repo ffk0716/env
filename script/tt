@@ -3,7 +3,7 @@ set -ex
 if [ $# -eq 1 ]
 then
     mm $1
-    ctest -V -R $1
+    ctest -V -R "^$1$"
 else
     mm
     ctest -j$(nproc) $@

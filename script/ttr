@@ -1,0 +1,15 @@
+#!/bin/bash
+set -e
+l=$(make help | grep $1)
+l=${l//.../}
+
+for v in $l
+do
+    echo tt $v
+done
+sleep 3
+
+for v in $l
+do
+    tt $v
+done
