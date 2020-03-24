@@ -55,6 +55,7 @@ map <Leader>n :let i=1 \| g//s//\=''.i/ \| let i=i+1<CR>
 map <Leader>r ciw<c-r>0<Esc>
 map <Leader>m do]c
 map <Leader>sp :setlocal spell! spelllang=en_us<CR>
+map <Leader>x :windo execute "%!xxd"<CR>
 " copy current path
 map <Leader>f :let @" = expand("%")<CR>
 vnoremap p "0p
