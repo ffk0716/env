@@ -69,6 +69,7 @@ POWERLEVEL9K_MODE='nerdfont-complete' # 使用 nerd font 時可以顯示更多 i
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
+_Z_NO_RESOLVE_SYMLINKS=1
 plugins=(
     virtualenv
     z
