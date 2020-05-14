@@ -9,7 +9,7 @@ then
     echo no merged branch
     exit
 fi
-vi ${tmpfile}
+vim ${tmpfile}
 xargs git branch -D < ${tmpfile}
 rm -fr ${tmpfile}
 
