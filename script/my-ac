@@ -1,26 +1,40 @@
 #!/usr/bin/env python3
 import subprocess
-import lxml.etree as le
 import yaml
+import plistlib
 
-ret = subprocess.check_output(
-    "system_profiler SPPowerDataType -xml", shell=True)
+ret = subprocess.check_output("system_profiler SPPowerDataType -xml", shell=True)
 
+def dump(t):
+    print(yaml.dump(t, default_flow_style=False))
 
-def to_dict(n):
-    key = 'error'
-    ret = {}
-    for c in n:
-        if c.tag == 'key':
-            key = c.text
-        elif c.tag == 'string':
-            ret[key] = c.text
+def find_dict(t):
+    ret = []
+    if type(t) is dict:
+        ret.append(t)
+        for c in t.values():
+            ret += find_dict(c)
+    elif type(t) is list:
+        for c in t:
+            ret += find_dict(c)
     return ret
 
 
-root = le.fromstring(ret)
-for c in root.xpath('//dict'):
-    d = to_dict(c)
-    if 'sppower_ac_charger_information' in d.values():
-        for k, v in d.items():
-            print('{} = {}'.format(k, v))
+def find_dict2(t, v):
+    for d in find_dict(t):
+        if v in d.values():
+            print(yaml.dump(d, default_flow_style=False))
+        if v in d.keys():
+            print(yaml.dump(d, default_flow_style=False))
+
+def find_data(t, key):
+    for d in find_dict(t):
+        if key in d.keys():
+            return d[key]
+
+
+pl = plistlib.loads(ret)
+del pl[0]['_properties'] # we don't need this
+find_dict2(pl, "sppower_ac_charger_information")
+
+a = find_data(pl, 'sppower_ac_charger_watts')
