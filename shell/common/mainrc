@@ -48,14 +48,5 @@ function wcd
     DIR=$(dirname $file)
     cd $DIR
 }
-function wvi
-{
-    if [ $# -ne 1 ]; then
-        echo "only accpet 1 argument"
-        return 1
-    fi
-    file=$(which $1)
-    vi $file
-}
 
 PATH=$PATH:$ENV_ROOT/p4-wrapper/commands

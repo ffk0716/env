@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ $# -ne 1 ]; then
+    echo "only accpet 1 argument"
+    return 1
+fi
+file=$(which $1)
+vi $file
+
