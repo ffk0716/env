@@ -78,5 +78,5 @@ export PATH=$PATH:/Users/eric/work/project/nvidia/nv-env
 export P4CONFIG=.p4config
 # 
 
-export CC=$(which gcc-5)
-export CXX=$(which g++-5)
+export CC=$(which gcc-9)
+export CXX=$(which g++-9)
