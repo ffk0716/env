@@ -47,6 +47,7 @@ let mapleader=','
 set diffopt+=iwhite
 map <Leader>w :w!<CR>
 map <Leader>q :qa!<CR>
+map <Leader>g :GitGutterToggle<CR>
 map <Leader>vi :tabnew ~/.vimrc<CR>
 map <Leader>s :source ~/.vimrc<CR>
 map <Leader>df :tabnew a.cxx<CR>:diffthis<CR>:vsp b.cxx<CR>:diffthis<CR>
