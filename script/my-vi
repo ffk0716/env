@@ -5,5 +5,5 @@ if [ $# -ne 1 ]; then
     return 1
 fi
 file=$(which $1)
-vi $file
+vim $file
 
