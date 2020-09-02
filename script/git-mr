@@ -11,7 +11,7 @@ args, other_args = parser.parse_known_args()
 def call(cmd):
     if args.debug:
         print("+", cmd)
-    r = subprocess.run(cmd.split(), check=True, stdout=subprocess.PIPE).stdout.decode('ascii').strip()
+    r = subprocess.run(cmd.split(), check=True, stdout=subprocess.PIPE).stdout.decode('UTF-8').strip()
     if args.debug:
         print(r)
     return r
