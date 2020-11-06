@@ -18,4 +18,4 @@ def call(cmd):
 
 
 cur_branch = call("git ref")
-call("git push origin {}:refs/heads/{} -u {}".format(cur_branch, cur_branch, " ".join(other_args)))
+call("git push origin {}:refs/heads/eric/{} -u {}".format(cur_branch, cur_branch, " ".join(other_args)))
