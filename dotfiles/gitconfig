@@ -40,3 +40,4 @@
 	required = true
 [log]
 	date = local
+	decorate = auto
