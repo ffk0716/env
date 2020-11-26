@@ -1,8 +1,23 @@
 #!/bin/bash
-set -exu
+set -eu
 
-if git show-branch remotes/origin/main; then
-    git symbolic-ref m refs/remotes/origin/main
+# find target
+if [ "$#" -eq 1 ]; then
+    target=$1
+elif git show-branch remotes/origin/main >& /dev/null; then
+    target=main
 else
-    git symbolic-ref m refs/remotes/origin/master
+    target=master
 fi
+
+# check before ref target
+if git show-branch remotes/origin/$target >& /dev/null; then
+    set -x
+    git symbolic-ref m refs/remotes/origin/$target
+else
+    # show error message
+    git show-branch remotes/origin/$target 
+fi
+
+
+
