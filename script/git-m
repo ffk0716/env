@@ -1,3 +1,8 @@
 #!/bin/bash
 set -exu
-git symbolic-ref m refs/remotes/origin/master
+
+if git show-branch remotes/origin/main; then
+    git symbolic-ref m refs/remotes/origin/main
+else
+    git symbolic-ref m refs/remotes/origin/master
+fi
