@@ -3,21 +3,29 @@ set -eu
 
 # find target
 if [ "$#" -eq 1 ]; then
-    target=$1
-elif git show-branch remotes/origin/main >& /dev/null; then
-    target=main
+    if git show-branch remotes/origin/$1 >& /dev/null; then
+        target=origin/$1
+    elif git show-branch remotes/$1 >& /dev/null; then
+        target=$1
+    else
+        # show error message
+        git show-branch remotes/origin/$1
+    fi
 else
-    target=master
+    if git show-branch remotes/origin/main >& /dev/null; then
+        target=origin/main
+    elif git show-branch remotes/origin/master >& /dev/null; then
+        target=origin/master
+    elif git show-branch remotes/p4/master >& /dev/null; then
+        target=p4/master
+    else
+        echo "can't find valid remote master"
+        exit 1
+    fi
 fi
 
-# check before ref target
-if git show-branch remotes/origin/$target >& /dev/null; then
-    set -x
-    git symbolic-ref m refs/remotes/origin/$target
-else
-    # show error message
-    git show-branch remotes/origin/$target 
-fi
+set -x
+git symbolic-ref m refs/remotes/$target
 
 
 

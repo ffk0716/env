@@ -1,4 +1,5 @@
 #!/bin/bash
 set -exu
 
+git submodule sync --recursive
 git submodule update --init --recursive

@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 
 if [ $# -eq 0 ]; then
     echo "No arguments provided"
@@ -7,4 +7,4 @@ fi
 
 cmd=git-sub-$1
 shift
-$cmd $@
+$cmd "$@"
