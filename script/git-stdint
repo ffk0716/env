@@ -1,0 +1,24 @@
+#!/bin/bash
+set -xu
+
+git sed "\<unsigned \+long \+long \+int\>" uint64_t
+git sed "\<long \+long \+unsigned \+int\>" uint64_t
+git sed "\<long \+long \+int\>" int64_t
+
+git sed "\<unsigned \+long \+int\>" uintxx_t
+git sed "\<long \+int\>" intxx_t
+
+git sed "\<unsigned \+long \+long\>" uint64_t
+git sed "\<long \+long\>" int64_t
+
+git sed "\<unsigned \+long\>" uintxx_t
+git sed "\<long\>" intxx_t
+
+git sed "\<unsigned \+int\>" uint32_t
+git sed "\<int\>" int32_t
+
+git sed "\<unsigned \+short\>" uint16_t
+git sed "\<short\>" int16_t
+
+git sed "\<unsigned \+char\>" uint8_t
+git sed "\<signed \+char\>" int8_t
