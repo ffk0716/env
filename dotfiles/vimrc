@@ -27,7 +27,7 @@ Plugin 'plasticboy/vim-markdown'      "The tabular plugin must come before vim-m
 " SCM related
 Plugin 'airblade/vim-gitgutter'       "shows a git diff in the 'gutter' (sign column), turn off by :GitGutterDisable
 Plugin 'tpope/vim-fugitive'           "A Git wrapper so awesome
-Plugin 'codota/tabnine-vim'
+" Plugin 'codota/tabnine-vim'
 " deprecated
 "Plug 'derekwyatt/vim-scala'
 "Plug 'aceofall/gtags.vim'
