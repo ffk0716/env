@@ -73,6 +73,24 @@ map <Leader>r ciw<c-r>0<Esc>
 map <Leader>m do]c
 map <Leader>sp :setlocal spell! spelllang=en_us<CR>
 map <Leader>x :windo execute "%!xxd"<CR>
+function! FormatStdint() range
+    silent! '<,'>s/\<unsigned \+long \+long \+int\>/uint64_t/g
+    silent! '<,'>s/\<long \+long \+unsigned \+int\>/uint64_t/g
+    silent! '<,'>s/\<long \+long \+int\>/int64_t/g
+    silent! '<,'>s/\<unsigned \+long \+int\>/uintxx_t/g
+    silent! '<,'>s/\<long \+int\>/intxx_t/g
+    silent! '<,'>s/\<unsigned \+long \+long\>/uint64_t/g
+    silent! '<,'>s/\<long \+long\>/int64_t/g
+    silent! '<,'>s/\<unsigned \+long\>/uintxx_t/g
+    silent! '<,'>s/\<long\>/intxx_t/g
+    silent! '<,'>s/\<unsigned \+int\>/uint32_t/g
+    silent! '<,'>s/\<int\>/int32_t/g
+    silent! '<,'>s/\<unsigned \+short\>/uint16_t/g
+    silent! '<,'>s/\<short\>/int16_t/g
+    silent! '<,'>s/\<unsigned \+char\>/uint8_t/g
+    silent! '<,'>s/\<signed \+char\>/int8_t/g
+endfunction
+map <Leader>std :'<,'>call FormatStdint()<CR>
 " copy current path
 map <Leader>f :let @" = expand("%")<CR>
 vnoremap p "0p
@@ -88,8 +106,18 @@ if &diff
     endfunction
 endif
 
+function! FormatFunction() range
+    '<,'>EasyAlign \
+    '<,'>EasyAlign /(/  {'right_margin' : 0 }
+    '<,'>EasyAlign *\
+    '<,'>EasyAlign 2/(/ {'right_margin' : 0 }
+    '<,'>EasyAlign *\
+    '<,'>EasyAlign 2/(/ {'left_margin' : 0, 'right_margin' : 0 }
+endfunction
+
 set spell spelllang=en_us
 map <silent>  <F2> :setlocal spell! spelllang=en_us<CR>
+map <silent>  <F2> :'<,'>call FormatFunction()<CR>
 map <silent>  <F3> :Autoformat<CR>
 map <silent>  <F4> :q!<CR>
 "map <silent>  <F5> :TlistToggle<CR>
