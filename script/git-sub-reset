@@ -1,0 +1,5 @@
+#!/bin/bash
+set -exu
+
+git sub update
+git submodule foreach git reset --hard
