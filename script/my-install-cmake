@@ -1,0 +1,12 @@
+#!/bin/bash
+set -exu
+
+ver=3.19.3
+ver=3.19.6
+n=cmake-$ver-Linux-x86_64.sh
+apt-get --purge remove cmake # Remove any conflicting cmake versions
+wget https://github.com/Kitware/CMake/releases/download/v$ver/$n
+chmod +x $n
+./$n --skip-license --prefix=/usr/local
+rm $n
+
