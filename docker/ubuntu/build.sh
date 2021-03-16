@@ -1,6 +1,6 @@
 #!/bin/bash 
+cd "$(dirname "$0")"
 set -exu
 
-rm -fr ./ssh
-cp -r ~/.ssh ./ssh
-docker build -t my/ubuntu .
+rsync -avP --delete ~/.ssh ./ssh
+docker build -t my-ubuntu .
