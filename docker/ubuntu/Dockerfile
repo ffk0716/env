@@ -17,15 +17,13 @@ RUN git clone https://github.com/zsh-users/zsh-autosuggestions ~/.oh-my-zsh/cust
 # setup ssh
 COPY ssh/ /root/.ssh
 # setup zshrc
-WORKDIR /root/work
-RUN git clone git@github.com:ffk0716/env.git
-RUN echo "source /root/work/env/shell/zshrc.ubuntu" > /root/.zshrc
+RUN git clone git@github.com:ffk0716/env.git /root/env
+RUN echo "source /root/env/shell/zshrc.ubuntu" > /root/.zshrc
 # setup lang
 RUN locale-gen "en_US.UTF-8"
 
 ############ setup vim ############ 
-WORKDIR /root/work/env
 RUN apt update && apt install -y --no-install-recommends \
         vim \
         cscope ctags
-RUN ./install.sh
+RUN /root/env/install.sh
