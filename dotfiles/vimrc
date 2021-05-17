@@ -89,6 +89,7 @@ function! FormatStdint() range
     silent! '<,'>s/\<short\>/int16_t/g
     silent! '<,'>s/\<unsigned \+char\>/uint8_t/g
     silent! '<,'>s/\<signed \+char\>/int8_t/g
+    silent! '<,'>s/\<unsigned\>/uint32_t/g
 endfunction
 map <Leader>std :'<,'>call FormatStdint()<CR>
 " copy current path
