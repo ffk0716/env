@@ -1,5 +1,3 @@
-[include]
-    path = ~/.gitconfig-local
 [core]
 	editor = vim
 	excludesfile = ~/.gitignore
@@ -20,10 +18,6 @@
 	prompt = false
 [push]
 	default = upstream
-[credential]
-	helper = store
-[gitreview]
-	username = eric.yu
 [color]
 	ui = auto
 [pager]
@@ -33,11 +27,8 @@
 	diff = false
 	show = false
 	status = false
-[filter "lfs"]
-	clean = git-lfs clean -- %f
-	smudge = git-lfs smudge -- %f
-	process = git-lfs filter-process
-	required = true
 [log]
 	date = local
 	decorate = auto
+[user]
+	name = Eric S. Yu
