@@ -21,7 +21,8 @@ def install_dotfiles(files):
             bk = f"{t}.bk"
             if os.path.isfile(bk):
                 print(f"    backup file exist, abort: {bk}")
-                os.rename(t, bk)
+                exit(1)
+            os.rename(t, bk)
         os.symlink(f, t)
         print(f"    link: {f} -> {t}")
 
