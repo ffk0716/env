@@ -31,8 +31,11 @@ for old_name in args.input:
             exif_data = et.get_metadata(old_name)
             if "QuickTime:MediaCreateDate" in exif_data:
                 time = exif_data["QuickTime:MediaCreateDate"]
-            else:
+            elif "EXIF:DateTimeOriginal" in exif_data:
                 time = exif_data["EXIF:DateTimeOriginal"]
+            else:
+                print(f"{old_name}: skip, no exif")
+                continue
             time = re.sub(r'(\d*):(\d*):(\d*) (\d*):(\d*):(\d*)', r'\1-\2-\3 \4.\5.\6', time)
     filename, ext = os.path.splitext(old_name)
     ext = ext.lower()
