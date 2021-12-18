@@ -43,11 +43,11 @@ def install_vim():
         print("        done")
     print("    install plugin for vim")
 
-    import subprocess
     process = subprocess.call(['vim', '+PluginInstall', '+qall'])
 
 
 if __name__ == "__main__":
+    import subprocess
     env_root = os.path.dirname(os.path.realpath(__file__))
     print(f"env_root = {env_root}")
     dot_file_path = os.path.join(env_root, "dotfiles")
@@ -60,3 +60,7 @@ if __name__ == "__main__":
     install_dotfiles(files)
     print("")
     install_vim()
+
+    print("")
+    print("setup git config")
+    subprocess.call('git config --global include.path .gitconfig-common', shell=True)
