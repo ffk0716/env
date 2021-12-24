@@ -1,0 +1,7 @@
+#!/bin/bash -e
+
+echo "Media:"
+echo "    my exif: rename photo/files with exif data"
+echo "    my heic: jpg to heic converter"
+echo "    my mp4: use ffmpeg convert videos"
+echo "    my photo: arrange photo by folder of date"
