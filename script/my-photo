@@ -2,6 +2,11 @@
 
 import os
 import re
+import argparse
+
+parser = argparse.ArgumentParser("my photo")
+parser.add_argument('-n', '--dry', action="store_true", help='dry run')
+args = parser.parse_args()
 
 p = re.compile(r'(\d{4}-\d{2}-\d{2} \d{2}.\d{2}.\d{2})(.*)')
 p2 = re.compile(r'(\d{4}-\d{2}-\d{2})')
@@ -15,5 +20,6 @@ for f in a:
             t = m.group(1)
             if not os.path.exists(t):
                 os.makedirs(t)
-            os.rename(f, os.path.join(t, f))
+            if not args.dry:
+                os.rename(f, os.path.join(t, f))
             print(f'move {f} to {t}')
