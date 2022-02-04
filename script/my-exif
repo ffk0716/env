@@ -29,10 +29,10 @@ for old_name in args.input:
     else:  # use exif
         with exiftool.ExifTool() as et:
             exif_data = et.get_metadata(old_name)
-            if "QuickTime:MediaCreateDate" in exif_data:
-                time = exif_data["QuickTime:MediaCreateDate"]
-            elif "EXIF:DateTimeOriginal" in exif_data:
-                time = exif_data["EXIF:DateTimeOriginal"]
+            for l in ["QuickTime:MediaCreateDate", "EXIF:DateTimeOriginal"]:
+                if l in exif_data:
+                    time = exif_data["QuickTime:MediaCreateDate"]
+                    break
             else:
                 print(f"{old_name}: skip, no exif")
                 continue
