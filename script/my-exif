@@ -13,11 +13,16 @@ parser.add_argument('-a', '--append', action="store_true", help='append original
 parser.add_argument('-n', '--dry', action="store_true", help='dry run')
 parser.add_argument('-v', '--verbose', action="store_true", help='verbose')
 parser.add_argument('-m', action="store_true", help='use modification time instead exif DateTimeOriginal')
+parser.add_argument('-c', action="store_true", help='use create time instead exif DateTimeOriginal')
 args = parser.parse_args()
 
 for old_name in args.input:
     if args.m:
         a = os.path.getmtime(old_name)
+        date_time = dt.datetime.fromtimestamp(a)
+        time = date_time.strftime("%Y-%m-%d %H.%M.%S")
+    elif args.c:
+        a = os.path.getctime(old_name)
         date_time = dt.datetime.fromtimestamp(a)
         time = date_time.strftime("%Y-%m-%d %H.%M.%S")
     else:  # use exif
