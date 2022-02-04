@@ -1,0 +1,10 @@
+#!/bin/bash
+set -euxo pipefail
+
+pushd /Volumes/Untitled/DCIM/100MEDIA
+my exif  *.MP4
+rsync -avP *.mp4 ~/Dropbox/Camera\ Uploads
+rm -fr *.mp4
+popd
+diskutil eject /Volumes/Untitled
+
