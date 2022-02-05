@@ -3,6 +3,7 @@
 import exiftool
 import os
 import argparse
+import re
 import datetime as dt
 
 # Get input file name
@@ -18,6 +19,7 @@ parser.add_argument('-f', action="store_true", help='fuzzy match by time (<1s)')
 args = parser.parse_args()
 
 dropbox_format = '%Y-%m-%d %H.%M.%S'
+dropbox_re = re.compile('^(\d{4}-\d{2}-\d* \d*.\d*.\d*)')
 
 
 def delta_to_str(d):
@@ -28,10 +30,11 @@ def delta_to_str(d):
 
 
 def roots_to_delta(a, b):
-    try:
-        a = dt.datetime.strptime(a, dropbox_format)
-    except:
+    if not (dropbox_re.match(a) and dropbox_re.match(b)):
         return None
+    a = dropbox_re.search(a).group(1)
+    b = dropbox_re.search(b).group(1)
+    a = dt.datetime.strptime(a, dropbox_format)
     b = dt.datetime.strptime(b, dropbox_format)
     d = b - a
     return d
@@ -81,15 +84,10 @@ for old_path in args.input:
 
     # keep old name
     if args.append:
-        new_root = "{} {}".format(new_root, old_root)
-
-    # fix name conflict
-    new_root_try = new_root
-    file_count = 1
-    while os.path.isfile(new_root_try + ext):
-        new_root_try = "{}-{}".format(new_root, file_count)
-        file_count += 1
-    new_root = new_root_try
+        if dropbox_re.match(old_root):
+            new_root = dropbox_re.sub(new_root, old_root)
+        else:
+            new_root = "{} {}".format(new_root, old_root)
 
     # skip if name does not change
     if old_root == new_root:
@@ -110,6 +108,14 @@ for old_path in args.input:
             if args.verbose:
                 print(f'skip: {old_root + ext} := {new_root + ext}{d_str}')
             continue
+
+    # fix name conflict
+    new_root_try = new_root
+    file_count = 1
+    while os.path.isfile(new_root_try + ext):
+        new_root_try = "{}-{}".format(new_root, file_count)
+        file_count += 1
+    new_root = new_root_try
 
     # rename
     new_path = os.path.join(head, new_root + ext)
