@@ -3,7 +3,6 @@
 import exiftool
 import os
 import argparse
-import re
 import datetime as dt
 
 # Get input file name
@@ -14,46 +13,106 @@ parser.add_argument('-n', '--dry', action="store_true", help='dry run')
 parser.add_argument('-v', '--verbose', action="store_true", help='verbose')
 parser.add_argument('-m', action="store_true", help='use modification time instead exif DateTimeOriginal')
 parser.add_argument('-c', action="store_true", help='use create time instead exif DateTimeOriginal')
+parser.add_argument('-u', '--utc', action="store_true", help='use utc time instead utc+8')
+parser.add_argument('-f', action="store_true", help='fuzzy match by time (<1s)')
 args = parser.parse_args()
 
-for old_name in args.input:
+dropbox_format = '%Y-%m-%d %H.%M.%S'
+
+
+def delta_to_str(d):
+    if d < dt.timedelta():
+        d = -d
+        return f'-{d}'
+    return f'+{d}'
+
+
+def roots_to_delta(a, b):
+    try:
+        a = dt.datetime.strptime(a, dropbox_format)
+    except:
+        return None
+    b = dt.datetime.strptime(b, dropbox_format)
+    d = b - a
+    return d
+
+
+def split_path(path):
+    head, tail = os.path.split(old_path)
+    root, ext = os.path.splitext(tail)
+    return head, root, ext.lower()
+
+
+def get_new_root(args):
     if args.m:
-        a = os.path.getmtime(old_name)
-        date_time = dt.datetime.fromtimestamp(a)
-        time = date_time.strftime("%Y-%m-%d %H.%M.%S")
+        a = os.path.getmtime(old_path)
+        t = dt.datetime.fromtimestamp(a)
+        return t.strftime(dropbox_format)
     elif args.c:
-        a = os.path.getctime(old_name)
-        date_time = dt.datetime.fromtimestamp(a)
-        time = date_time.strftime("%Y-%m-%d %H.%M.%S")
+        a = os.path.getctime(old_path)
+        t = dt.datetime.fromtimestamp(a)
+        return t.strftime(dropbox_format)
     else:  # use exif
         with exiftool.ExifTool() as et:
-            for l in ["MediaCreateDate", "EXIF:DateTimeOriginal"]:
-                time_string = et.get_tag(l, old_name)
+            for l in ["MediaCreateDate", "DateTimeOriginal"]:
+                time_string = et.get_tag(l, old_path)
                 if time_string == None:
                     continue
-                t = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
-                t += dt.timedelta(hours=8)
-                time = t.strftime('%Y-%m-%d %H.%M.%S')
-                break
+                try:
+                    t = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
+                except:
+                    continue
+                if not args.utc:
+                    t += dt.timedelta(hours=8)
+                return t.strftime(dropbox_format)
             else:
-                print(f"{old_name}: skip, no exif")
-                continue
-    filename, ext = os.path.splitext(old_name)
-    ext = ext.lower()
-    new_name = time
+                return None
+
+
+for old_path in args.input:
+
+    # get new root
+    new_root = get_new_root(args)
+    if new_root == None:
+        if args.verbose:
+            print(f"{old_path}: skip, no exif")
+        continue
+    head, old_root, ext = split_path(old_path)
+
+    # keep old name
     if args.append:
-        new_name = "{} {}".format(new_name, filename)
-    if old_name == new_name + ext:
+        new_root = "{} {}".format(new_root, old_root)
+
+    # fix name conflict
+    new_root_try = new_root
+    file_count = 1
+    while os.path.isfile(new_root_try + ext):
+        new_root_try = "{}-{}".format(new_root, file_count)
+        file_count += 1
+    new_root = new_root_try
+
+    # skip if name does not change
+    if old_root == new_root:
+        if args.verbose:
+            print(f'skip: {old_root + ext} == {new_root + ext}')
         continue
 
-    new_name_try = new_name
-    file_count = 1
-    while os.path.isfile(new_name_try + ext):
-        new_name_try = "{}-{}".format(new_name, file_count)
-        file_count += 1
-    new_name = new_name_try
-    new_name = new_name + ext
+    # get delta string
+    d = roots_to_delta(old_root, new_root)
+    if d:
+        d_str = f' ({delta_to_str(d)})'
+    else:
+        d_str = ''
 
-    print('{} -> {}'.format(old_name, new_name))
+    # skip if time delta < 1s
+    if args.f:
+        if abs(d) <= dt.timedelta(seconds=1):
+            if args.verbose:
+                print(f'skip: {old_root + ext} := {new_root + ext}{d_str}')
+            continue
+
+    # rename
+    new_path = os.path.join(head, new_root + ext)
+    print(f'{old_path} -> {new_path}{d_str}')
     if not args.dry:
-        os.rename(old_name, new_name)
+        os.rename(old_path, new_path)
