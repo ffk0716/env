@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+import subprocess
+import argparse
+import os
+import sys
+
+parser = argparse.ArgumentParser()
+parser.add_argument('input', help='input pdf')
+parser.add_argument('-n', '--dry', action="store_true", help='dry run')
+parser.add_argument('-p', '--password', help='password')
+parser.add_argument('-r', '--replace', action="store_true", help='replace original file')
+parser.add_argument('-v', '--verbose', action="store_true", help='verbose')
+args = parser.parse_args()
+
+
+ret = subprocess.run(f'qpdf --is-encrypted "{args.input}"', shell=True)
+
+if ret.returncode == 0:
+    print(f'file encrypted: {args.input}')
+    if args.password == None:
+        print('Need password')
+        exit()
+    sys.stdout.flush()
+    if args.verbose:
+        ret = subprocess.run(f'qpdf --show-encryption --password={args.password} "{args.input}"', shell=True)
+    if args.dry:
+        print("dry mode, pass decryption")
+    else:
+        if args.replace:
+            ret = subprocess.run(f'qpdf --decrypt --password={args.password} --replace-input "{args.input}"', shell=True)
+        else:
+            f, e = os.path.splitext(args.input)
+            nf = f'{f}-decrypted{e}'
+            ret = subprocess.run(f'qpdf --decrypt --password={args.password} "{args.input}" "{nf}"', shell=True)
+            print(f"output file: {nf}")
+else:
+    if args.verbose:
+        print(f'not encrypted: {args.input}')
+    
+

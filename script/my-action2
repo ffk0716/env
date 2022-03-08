@@ -7,4 +7,5 @@ rsync -avP *.mp4 ~/Dropbox/Camera\ Uploads
 rm -fr *.mp4
 popd
 diskutil eject /Volumes/Untitled
+open ~/Dropbox/Camera\ Uploads
 
