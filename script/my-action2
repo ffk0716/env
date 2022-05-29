@@ -2,10 +2,14 @@
 set -euxo pipefail
 
 pushd /Volumes/Untitled/DCIM/100MEDIA
-my exif  *.MP4
-rsync -avP *.mp4 ~/Dropbox/Camera\ Uploads
-rm -fr *.mp4
+if ls *.MP4 &> /dev/null ; then
+    my exif *.MP4
+fi
+if ls *.mp4 &> /dev/null ; then
+    open ~/Dropbox/Camera\ Uploads
+    rsync -avP *.mp4 ~/Dropbox/Camera\ Uploads
+    rm -fr *.mp4
+fi
 popd
 diskutil eject /Volumes/Untitled
-open ~/Dropbox/Camera\ Uploads
 

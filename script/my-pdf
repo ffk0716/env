@@ -16,7 +16,11 @@ args = parser.parse_args()
 ret = subprocess.run(f'qpdf --is-encrypted "{args.input}"', shell=True)
 
 if ret.returncode == 0:
-    print(f'file encrypted: {args.input}')
+    ret = subprocess.run(f'gs -dBATCH -sNODISPLAY "{args.input}"', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    if ret.returncode == 0:
+        print(f'file encrypted, but user password not set: {args.input}')
+    else:
+        print(f'file encrypted: {args.input}')
     if args.password == None:
         print('Need password')
         exit()
