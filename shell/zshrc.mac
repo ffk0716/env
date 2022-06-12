@@ -78,8 +78,7 @@ export PATH=$PATH:/Users/eric/work/project/nvidia/nv-env
 export P4CONFIG=.p4config
 
 # cudsp
-export CC=$(which gcc-5)
-export CXX=$(which g++-5)
+export LC_ALL=en_US.UTF-8
 PATH="/usr/local/opt/gnu-sed/libexec/gnubin:$PATH"
 
 # 
