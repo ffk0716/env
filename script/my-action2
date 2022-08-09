@@ -1,15 +1,30 @@
 #!/bin/bash
 set -euxo pipefail
 
+open ~/Dropbox/Camera\ Uploads
+
 pushd /Volumes/Untitled/DCIM/100MEDIA
 if ls *.MP4 &> /dev/null ; then
     my exif *.MP4
 fi
 if ls *.mp4 &> /dev/null ; then
-    open ~/Dropbox/Camera\ Uploads
     rsync -avP *.mp4 ~/Dropbox/Camera\ Uploads
     rm -fr *.mp4
 fi
 popd
 diskutil eject /Volumes/Untitled
+
+p=/Volumes/SD_Card/DCIM/100MEDIA
+if [ -d "$p" ] ; then
+    pushd $p
+    if ls *.MP4 &> /dev/null ; then
+        my exif *.MP4
+    fi
+    if ls *.mp4 &> /dev/null ; then
+        rsync -avP *.mp4 ~/Dropbox/Camera\ Uploads
+        rm -fr *.mp4
+    fi
+    popd
+    diskutil eject /Volumes/SD_Card
+fi
 
