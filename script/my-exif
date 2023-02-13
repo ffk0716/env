@@ -50,32 +50,33 @@ def get_new_root(args):
     if args.m:
         a = os.path.getmtime(old_path)
         t = dt.datetime.fromtimestamp(a)
-        return t.strftime(dropbox_format)
+        return t.strftime(dropbox_format), None
     elif args.c:
         a = os.path.getctime(old_path)
         t = dt.datetime.fromtimestamp(a)
-        return t.strftime(dropbox_format)
+        return t.strftime(dropbox_format), None
     else:  # use exif
-        with exiftool.ExifTool() as et:
+        with exiftool.ExifToolAlpha() as et:
             for l in ["MediaCreateDate", "DateTimeOriginal"]:
-                time_string = et.get_tag(l, old_path)
+                time_string = et.get_tag(old_path, l)
                 if time_string == None:
                     continue
                 try:
                     t = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
                 except:
                     continue
+                offset = et.get_tag(old_path, "OffsetTime")
                 if not args.utc:
                     t += dt.timedelta(hours=8)
-                return t.strftime(dropbox_format)
+                return t.strftime(dropbox_format), offset
             else:
-                return None
+                return None, None
 
 
 for old_path in args.input:
 
     # get new root
-    new_root = get_new_root(args)
+    new_root, time_offset = get_new_root(args)
     if new_root == None:
         if args.verbose:
             print(f"{old_path}: skip, no exif")
@@ -117,8 +118,11 @@ for old_path in args.input:
         file_count += 1
     new_root = new_root_try
 
-    # rename
+    # rentime_offset ame
     new_path = os.path.join(head, new_root + ext)
-    print(f'{old_path} -> {new_path}{d_str}')
+    print(f'{old_path} -> {new_path}{d_str}', end='')
+    if time_offset:
+        print(f", OffsetTime = {time_offset}", end='')
+    print()
     if not args.dry:
         os.rename(old_path, new_path)
