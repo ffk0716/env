@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import subprocess
 
 
 def install_dotfiles(files):
@@ -47,7 +48,6 @@ def install_vim():
 
 
 if __name__ == "__main__":
-    import subprocess
     env_root = os.path.dirname(os.path.realpath(__file__))
     print(f"env_root = {env_root}")
     dot_file_path = os.path.join(env_root, "dotfiles")
