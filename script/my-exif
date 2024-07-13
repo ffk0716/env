@@ -6,20 +6,8 @@ import argparse
 import re
 import datetime as dt
 
-# Get input file name
-parser = argparse.ArgumentParser("my exif")
-parser.add_argument('input', nargs='+', help='input photo')
-parser.add_argument('-a', '--append', action="store_true", help='append original name')
-parser.add_argument('-n', '--dry', action="store_true", help='dry run')
-parser.add_argument('-v', '--verbose', action="store_true", help='verbose')
-parser.add_argument('-m', action="store_true", help='use modification time instead exif DateTimeOriginal')
-parser.add_argument('-c', action="store_true", help='use create time instead exif DateTimeOriginal')
-parser.add_argument('-u', '--utc', action="store_true", help='use utc time instead utc+8')
-parser.add_argument('-f', action="store_true", help='fuzzy match by time (<1s)')
-args = parser.parse_args()
-
 dropbox_format = '%Y-%m-%d %H.%M.%S'
-dropbox_re = re.compile('^(\d{4}-\d{2}-\d* \d*.\d*.\d*)')
+dropbox_re = re.compile(r'^(\d{4}-\d{2}-\d* \d*.\d*.\d*)')
 
 
 def delta_to_str(d):
@@ -46,54 +34,106 @@ def split_path(path):
     return head, root, ext.lower()
 
 
-def get_new_root(args):
-    if args.m:
-        a = os.path.getmtime(old_path)
-        t = dt.datetime.fromtimestamp(a)
-        return t.strftime(dropbox_format), None
-    elif args.c:
-        a = os.path.getctime(old_path)
-        t = dt.datetime.fromtimestamp(a)
-        return t.strftime(dropbox_format), None
-    else:  # use exif
-        with exiftool.ExifToolAlpha() as et:
-            for l in ["MediaCreateDate", "DateTimeOriginal"]:
-                time_string = et.get_tag(old_path, l)
-                if time_string == None:
-                    continue
-                try:
-                    t = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
-                except:
-                    continue
-                offset = et.get_tag(old_path, "OffsetTime")
-                if not args.utc:
-                    t += dt.timedelta(hours=8)
-                return t.strftime(dropbox_format), offset
-            else:
-                return None, None
+def get_tag(fname, tag_name):
+    if type(tag_name) == list:
+        for t in tag_name:
+            v = get_tag(fname, t)
+            if v != None:
+                return v
+        else:
+            return None
+
+    with exiftool.ExifToolHelper() as et:
+        tags = et.get_tags(fname, tag_name)[0]
+        if tag_name in tags:
+            return tags[tag_name]
+        if len(tags) > 1:
+            print(tags)
+        return None
 
 
+def get_utc(fname):
+    _, _, ext = split_path(fname)
+    # jpg files
+    time_string = get_tag(fname, "EXIF:CreateDate")
+    if time_string != None:
+        assert ext == ".jpg" or ext == ".heic"
+        c_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
+        time_string = get_tag(fname, "EXIF:OffsetTime")
+        if time_string != None:
+            time_zone = dt.datetime.strptime(time_string, '%z').utcoffset()
+        else:
+            time_zone = None
+        return c_time, time_zone
+    # mov files
+    time_string = get_tag(fname, "QuickTime:CreationDate")
+    if time_string != None:
+        assert ext == ".mov"
+        c_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S%z')
+        return c_time, c_time.utcoffset()
+    # mp4 files
+    time_string = get_tag(fname, "QuickTime:CreateDate")
+    if time_string != None:
+        assert ext == ".mp4"
+        c_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
+        time_string = get_tag(fname, "QuickTime:TimeZone")
+        if time_string != None:
+            time_zone = dt.timedelta(minutes=int(time_string))
+            c_time += time_zone
+        else:
+            time_zone = None
+        return c_time, time_zone
+    return None, None
+
+
+def get_new_root(args, old_path):
+    c_time, time_zone = get_utc(old_path)
+    if c_time == None:
+        return None, None
+    if args.offset:
+        c_time += dt.timedelta(hours=args.offset)
+    c_time = c_time.strftime(dropbox_format)
+    time_zone = dt.timezone(time_zone)
+    author = get_tag(old_path, ["EXIF:Artist", "QuickTime:Artist"])
+    print(old_path, c_time, time_zone, author)
+    return c_time, time_zone
+
+
+# Get input file name
+parser = argparse.ArgumentParser("my exif")
+parser.add_argument('input', nargs='+', help='input files')
+parser.add_argument('-n', '--dry', action="store_true", help='dry run')
+parser.add_argument('-v', '--verbose', action="store_true", help='verbose')
+parser.add_argument('-m',
+                    action="store_true",
+                    help='use modification time instead exif DateTimeOriginal')
+parser.add_argument('-o', '--offset', type=int, help='offset')
+args = parser.parse_args()
+
+file_total = 0
+no_update = 0
+no_exif = 0
+update = 0
 for old_path in args.input:
-
+    file_total += 1
     # get new root
-    new_root, time_offset = get_new_root(args)
+    new_root, time_zone = get_new_root(args, old_path)
     if new_root == None:
         if args.verbose:
             print(f"{old_path}: skip, no exif")
+        no_exif += 1
         continue
     head, old_root, ext = split_path(old_path)
 
     # keep old name
-    if args.append:
-        if dropbox_re.match(old_root):
-            new_root = dropbox_re.sub(new_root, old_root)
-        else:
-            new_root = "{} {}".format(new_root, old_root)
+    if dropbox_re.match(old_root):
+        new_root = dropbox_re.sub(new_root, old_root)
 
     # skip if name does not change
     if old_root == new_root:
         if args.verbose:
-            print(f'skip: {old_root + ext} == {new_root + ext}')
+            print(f'{old_path}: skip: no change')
+        no_update += 1
         continue
 
     # get delta string
@@ -102,13 +142,6 @@ for old_path in args.input:
         d_str = f' ({delta_to_str(d)})'
     else:
         d_str = ''
-
-    # skip if time delta < 1s
-    if args.f:
-        if abs(d) <= dt.timedelta(seconds=1):
-            if args.verbose:
-                print(f'skip: {old_root + ext} := {new_root + ext}{d_str}')
-            continue
 
     # fix name conflict
     new_root_try = new_root
@@ -121,8 +154,13 @@ for old_path in args.input:
     # rentime_offset ame
     new_path = os.path.join(head, new_root + ext)
     print(f'{old_path} -> {new_path}{d_str}', end='')
-    if time_offset:
-        print(f", OffsetTime = {time_offset}", end='')
+    if time_zone:
+        print(f", timezone = {time_zone}", end='')
     print()
     if not args.dry:
         os.rename(old_path, new_path)
+        update += 1
+print(f'Total files scaned: {file_total}')
+print(f'No update files:    {no_update}')
+print(f'No exif files:      {no_exif}')
+print(f'Update files:       {update}')
