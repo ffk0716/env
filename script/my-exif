@@ -78,7 +78,7 @@ def get_utc(fname):
     # mp4 files
     time_string = get_tag(fname, "QuickTime:CreateDate")
     if time_string != None:
-        assert ext == ".mp4"
+        assert ext.lower() == ".mp4"
         c_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
         time_string = get_tag(fname, "QuickTime:TimeZone")
         if time_string != None:
