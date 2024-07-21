@@ -10,6 +10,20 @@ dropbox_format = '%Y-%m-%d %H.%M.%S'
 dropbox_re = re.compile(r'^(\d{4}-\d{2}-\d* \d*.\d*.\d*)')
 
 
+# handle Chinese character correctly
+def get_len(s):
+    l = len(s)
+    utf8_l = len(s.encode('utf-8'))
+    return int((utf8_l - l) / 2 + l)
+
+
+def pw(s, w):
+    l = len(s)
+    rl = get_len(s)
+    w = w - (rl - l)
+    return f'{s:{w}}'
+
+
 def delta_to_str(d):
     if d < dt.timedelta():
         d = -d
@@ -57,7 +71,12 @@ def get_tag(fname, tag_name):
 
 
 def get_utc(fname, default_time_zone):
+    info = []
     _, _, ext = split_path(fname)
+    dev = get_tag(fname,
+                  ["EXIF:Model", "XML:DeviceModelName", "QuickTime:Encoder"])
+    if not dev:
+        info.append('unknow device')
     # jpg files
     time_string = get_tag(fname, "EXIF:CreateDate")
     if time_string != None:
@@ -65,68 +84,45 @@ def get_utc(fname, default_time_zone):
         c_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
         time_string = get_tag(fname, "EXIF:OffsetTime")
         if time_string != None:
-            time_zone = dt.datetime.strptime(time_string, '%z').utcoffset()
+            timezone = dt.datetime.strptime(time_string, '%z').utcoffset()
         else:
-            time_zone = None
-        return c_time, time_zone
+            timezone = None
+        return info, c_time, timezone
     # mov files
     time_string = get_tag(fname, "QuickTime:CreationDate")
     if time_string != None:
         assert ext in ["mov"]
         c_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S%z')
-        return c_time, c_time.utcoffset()
+        return info, c_time, c_time.utcoffset()
     # mp4 files
     time_string = get_tag(fname, "QuickTime:CreateDate")
     if time_string != None:
         assert ext in ["mp4"]
-        c_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
-        encoder = get_tag(fname, "QuickTime:Encoder")
-        if encoder in ['DJIAction2']:  #c_time = local, no timezone
-            assert get_tag(fname, "QuickTime:TimeZone") == None
-            if default_time_zone:
-                c_time += dt.timedelta(hours=default_time_zone)
-            return c_time, None
-        elif encoder in ['DJI OsmoAction4']:  #c_time = UTC, no timezone
-            assert get_tag(fname, "QuickTime:TimeZone") == None
-            if default_time_zone:
-                c_time += dt.timedelta(hours=default_time_zone)
-            return c_time, None
-        else:  # if timezone exist, c_time = UTC, else c_time = local
-            time_string = get_tag(fname, "QuickTime:TimeZone")
-            if time_string != None:
-                time_zone = dt.timedelta(minutes=int(time_string))
-                c_time += time_zone
-            else:
-                time_zone = None
-            return c_time, time_zone
-    return None, None
-
-
-def get_new_root(old_path, offset, default_time_zone):
-    c_time, time_zone = get_utc(old_path, default_time_zone)
-    info = []
-    if c_time == None:
-        _, old_root, _ = split_path(old_path)
-        c_time = str_to_datetime(old_root)
-        info.append("no exif")
-    if c_time:
-        if time_zone == None:
-            if default_time_zone:
-                pass
-                #c_time += dt.timedelta(hours=default_time_zone)
-        if offset:
-            c_time += dt.timedelta(hours=offset)
-        c_time = c_time.strftime(dropbox_format)
-    if time_zone != None:
-        info.append(delta_to_str(time_zone))
-    author = get_tag(old_path, ["EXIF:Artist", "QuickTime:Artist"])
-    if author:
-        info.append(author)
-    info = ', '.join(info)
-    if info:
-        info = f' ({info})'
-    info = f'{old_path}{info}'
-    return c_time, info
+        if time_string == "0000:00:00 00:00:00":
+            info.append("no timing")
+            c_time = None
+        else:
+            c_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
+        timezone = None
+        is_local = False
+        if dev in ['DJIAction2', 'DJI OsmoAction4']:
+            pass
+        elif dev in ['FDR-AX43A']:
+            is_local = False
+            t = get_tag(fname, "QuickTime:TimeZone")
+            timezone = dt.timedelta(minutes=int(t))
+        else:
+            is_local = False
+            if dev:
+                info.append(f'unsupported device {dev}')
+        if c_time:
+            if not is_local:
+                if timezone:
+                    c_time += timezone
+                else:
+                    c_time += dt.timedelta(hours=default_time_zone)
+        return info, c_time, timezone
+    return info, None, None
 
 
 if __name__ == '__main__':
@@ -134,9 +130,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser("my exif")
     parser.add_argument('-i', '--input', nargs='+', help='input files')
     parser.add_argument('-n', '--dry', action="store_true", help='dry run')
-    parser.add_argument('-v', '--verbose', action="store_true", help='verbose')
+    parser.add_argument('-v', '--verbose', action='count', help='verbose')
     parser.add_argument('-o', '--offset', type=int, help='offset')
-    parser.add_argument('-z', '--timezone', type=int, default=8, help='default timezone if not exist')
+    parser.add_argument('-z',
+                        '--timezone',
+                        type=int,
+                        default=8,
+                        help='default timezone if not exist')
     parser.add_argument('-e',
                         '--ext',
                         nargs='+',
@@ -146,25 +146,46 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     file_total = 0
-    file_no_update = 0
+    file_no_timing = 0
     file_no_exif = 0
+    file_no_change = 0
     file_update = 0
 
-    def handle(old_path):
-        global file_total
-        global file_no_update
+    def get_new_root(old_path, offset, default_time_zone):
         global file_no_exif
+        info, c_time, timezone = get_utc(old_path, default_time_zone)
+        if c_time == None:
+            file_no_exif += 1
+            _, old_root, _ = split_path(old_path)
+            c_time = str_to_datetime(old_root)
+            info.append("no exif")
+        if c_time:
+            if offset:
+                c_time += dt.timedelta(hours=offset)
+            c_time = c_time.strftime(dropbox_format)
+        if timezone != None:
+            info.append(delta_to_str(timezone))
+        author = get_tag(old_path, ["EXIF:Artist", "QuickTime:Artist"])
+        if author:
+            info.append(author)
+        info = ', '.join(info)
+        if info:
+            info = f' ({info})'
+        return c_time, info
+
+    def handle(max_n, old_path):
+        global file_total
+        global file_no_change
         global file_update
-        head, old_root, ext = split_path(old_path)
-        if args.ext and not ext in args.ext:
-            return
+        global file_no_timing
+        head, old_root, ext = split_path(f)
         file_total += 1
         # get new root
         new_root, info = get_new_root(old_path, args.offset, args.timezone)
         if new_root == None:
-            if args.verbose:
-                print(f"{info}: skip, no exif")
-            file_no_exif += 1
+            if args.verbose >= 1:
+                print(f"{pw(old_path, max_n)}:{info} skip, no timing info")
+            file_no_timing += 1
             return
 
         # keep old name
@@ -173,9 +194,9 @@ if __name__ == '__main__':
 
         # skip if name does not change
         if old_root == new_root:
-            if args.verbose:
-                print(f'{info}: skip, no change')
-            file_no_update += 1
+            if args.verbose >= 2:
+                print(f'{pw(old_path, max_n)}:{info} skip, no change')
+            file_no_change += 1
             return
 
         # get delta string
@@ -193,11 +214,10 @@ if __name__ == '__main__':
             file_count += 1
 
         # rentime_offset ame
-        print(f'{info} -> {new_path_try}{d_str}', end='')
-        print()
+        print(f'{old_path} -> {info} j {new_path_try}{d_str}')
+        file_update += 1
         if not args.dry:
             os.rename(old_path, new_path_try)
-            file_update += 1
 
     file_list = []
     for f in args.input:
@@ -209,13 +229,24 @@ if __name__ == '__main__':
                     file_list.append(os.path.join(dirpath, filename))
         else:
             file_list.append(f)
-    for f in sorted(file_list):
-        try:
-            handle(f)
-        except Exception as e:
-            print(f'{f}: error')
-            print(e)
-    print(f'Total files scaned: {file_total}')
-    print(f'No update files:    {file_no_update}')
-    print(f'No exif files:      {file_no_exif}')
-    print(f'Update files:       {file_update}')
+
+    file_list2 = []
+    for f in file_list:
+        head, old_root, ext = split_path(f)
+        if not args.ext or ext in args.ext:
+            file_list2.append(f)
+    if args.verbose >= 1:
+        print(f'Total files to scan: {len(file_list2)}')
+    max_n = max(get_len(s) for s in file_list2)
+    for f in sorted(file_list2):
+        handle(max_n, f)
+    assert file_total == (file_no_timing + file_no_change + file_update)
+    print(f'Total files scaned:  {file_total}')
+    print(f'  No change files:   {file_total - file_update}')
+    print(f'    Same name:       {file_no_change}')
+    print(f'    No timing:       {file_no_timing}')
+    print(f'      No exif:       {file_no_exif}')
+    if args.dry:
+        print(f'  Update files(dry): {file_update}')
+    else:
+        print(f'  Update files:      {file_update}')
