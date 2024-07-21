@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
+import argparse
+import datetime as dt
 import exiftool
 import os
-import argparse
 import re
-import datetime as dt
 
 dropbox_format = '%Y-%m-%d %H.%M.%S'
 dropbox_re = re.compile(r'^(\d{4}-\d{2}-\d* \d*.\d*.\d*)')
@@ -17,7 +17,7 @@ def get_len(s):
     return int((utf8_l - l) / 2 + l)
 
 
-def pw(s, w):
+def fix_width(s, w):
     l = len(s)
     rl = get_len(s)
     w = w - (rl - l)
@@ -69,60 +69,86 @@ def get_tag(fname, tag_name):
             print(tags)
         return None
 
-
-def get_utc(fname, default_time_zone):
-    info = []
-    _, _, ext = split_path(fname)
-    dev = get_tag(fname,
-                  ["EXIF:Model", "XML:DeviceModelName", "QuickTime:Encoder"])
-    if not dev:
-        info.append('unknow device')
-    # jpg files
-    time_string = get_tag(fname, "EXIF:CreateDate")
-    if time_string != None:
-        assert ext in ["jpg", "heic"]
-        c_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
-        time_string = get_tag(fname, "EXIF:OffsetTime")
+class file_agent():
+    def __init__(self, fname, default_time_zone):
+        self.fname = fname
+        self.c_time = None
+        self.timezone = None
+        info = []
+        _, _, ext = split_path(fname)
+        self.dev = get_tag(fname,
+                           ["EXIF:Model", "QuickTime:Model", "XML:DeviceModelName", "QuickTime:Encoder"])
+        # jpg files
+        time_string = get_tag(fname, "EXIF:CreateDate")
         if time_string != None:
-            timezone = dt.datetime.strptime(time_string, '%z').utcoffset()
-        else:
-            timezone = None
-        return info, c_time, timezone
-    # mov files
-    time_string = get_tag(fname, "QuickTime:CreationDate")
-    if time_string != None:
-        assert ext in ["mov"]
-        c_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S%z')
-        return info, c_time, c_time.utcoffset()
-    # mp4 files
-    time_string = get_tag(fname, "QuickTime:CreateDate")
-    if time_string != None:
-        assert ext in ["mp4"]
-        if time_string == "0000:00:00 00:00:00":
-            info.append("no timing")
-            c_time = None
-        else:
+            assert ext in ["jpg", "heic"]
             c_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
-        timezone = None
-        is_local = False
-        if dev in ['DJIAction2', 'DJI OsmoAction4']:
-            pass
-        elif dev in ['FDR-AX43A']:
+            time_string = get_tag(fname, "EXIF:OffsetTime")
+            if time_string != None:
+                timezone = dt.datetime.strptime(time_string, '%z').utcoffset()
+            else:
+                timezone = None
+            self.c_time = c_time
+            self.timezone = timezone
+            return
+        # mov files
+        time_string = get_tag(fname, "QuickTime:CreationDate")
+        if time_string != None:
+            assert ext in ["mov"]
+            c_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S%z')
+            self.c_time = c_time
+            self.timezone = c_time.utcoffset()
+            return 
+        # mp4 files
+        time_string = get_tag(fname, "QuickTime:CreateDate")
+        if time_string != None:
+            assert ext in ["mp4"]
+            if time_string == "0000:00:00 00:00:00":
+                print("no timing")
+                c_time = None
+            else:
+                c_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
+            timezone = None
             is_local = False
-            t = get_tag(fname, "QuickTime:TimeZone")
-            timezone = dt.timedelta(minutes=int(t))
+            if self.dev in ['DJIAction2', 'DJI OsmoAction4']:
+                pass
+            elif self.dev in ['FDR-AX43A']:
+                is_local = False
+                t = get_tag(fname, "QuickTime:TimeZone")
+                timezone = dt.timedelta(minutes=int(t))
+            else:
+                is_local = False
+                if self.dev:
+                    print(f'unsupported device {self.dev}')
+            if c_time:
+                if not is_local:
+                    if timezone:
+                        c_time += timezone
+                    else:
+                        c_time += dt.timedelta(hours=default_time_zone)
+            self.c_time = c_time
+            self.timezone = timezone
+            return 
+    def info(self):
+        s = ''
+        if self.c_time:
+            s += self.c_time.strftime(dropbox_format)
         else:
-            is_local = False
-            if dev:
-                info.append(f'unsupported device {dev}')
-        if c_time:
-            if not is_local:
-                if timezone:
-                    c_time += timezone
-                else:
-                    c_time += dt.timedelta(hours=default_time_zone)
-        return info, c_time, timezone
-    return info, None, None
+            s += ' ' * 19
+        s += ' '
+        if self.timezone:
+            s += delta_to_str(self.timezone)
+        else:
+            s += ' ' * 8
+        author = get_tag(self.fname, ["EXIF:Artist", "QuickTime:Artist"])
+        author = '' if not author else author
+        s += f" {author:10}"
+
+        if self.dev:
+            s += f" {self.dev:15}"
+        else:
+            s += f" {'':15}"
+        return s
 
 
 if __name__ == '__main__':
@@ -153,25 +179,17 @@ if __name__ == '__main__':
 
     def get_new_root(old_path, offset, default_time_zone):
         global file_no_exif
-        info, c_time, timezone = get_utc(old_path, default_time_zone)
+        a = file_agent(old_path, default_time_zone)
+        c_time, timezone = a.c_time, a.timezone
         if c_time == None:
             file_no_exif += 1
             _, old_root, _ = split_path(old_path)
             c_time = str_to_datetime(old_root)
-            info.append("no exif")
         if c_time:
             if offset:
                 c_time += dt.timedelta(hours=offset)
             c_time = c_time.strftime(dropbox_format)
-        if timezone != None:
-            info.append(delta_to_str(timezone))
-        author = get_tag(old_path, ["EXIF:Artist", "QuickTime:Artist"])
-        if author:
-            info.append(author)
-        info = ', '.join(info)
-        if info:
-            info = f' ({info})'
-        return c_time, info
+        return c_time, a.info()
 
     def handle(max_n, old_path):
         global file_total
@@ -184,7 +202,7 @@ if __name__ == '__main__':
         new_root, info = get_new_root(old_path, args.offset, args.timezone)
         if new_root == None:
             if args.verbose >= 1:
-                print(f"{pw(old_path, max_n)}:{info} skip, no timing info")
+                print(f"{fix_width(old_path, max_n)}: {info}: skip, no timing info")
             file_no_timing += 1
             return
 
@@ -195,7 +213,7 @@ if __name__ == '__main__':
         # skip if name does not change
         if old_root == new_root:
             if args.verbose >= 2:
-                print(f'{pw(old_path, max_n)}:{info} skip, no change')
+                print(f'{fix_width(old_path, max_n)}: {info}: skip, no change')
             file_no_change += 1
             return
 
@@ -204,7 +222,7 @@ if __name__ == '__main__':
         if d:
             d_str = f' ({delta_to_str(d)})'
         else:
-            d_str = ''
+            d_str = ' ' * 9
 
         # fix name conflict
         new_path_try = os.path.join(head, f'{new_root}.{ext}')
@@ -214,7 +232,7 @@ if __name__ == '__main__':
             file_count += 1
 
         # rentime_offset ame
-        print(f'{old_path} -> {info} j {new_path_try}{d_str}')
+        print(f'{fix_width(old_path, max_n)}: {info}: -> {d_str} {new_path_try}')
         file_update += 1
         if not args.dry:
             os.rename(old_path, new_path_try)
@@ -242,10 +260,10 @@ if __name__ == '__main__':
         handle(max_n, f)
     assert file_total == (file_no_timing + file_no_change + file_update)
     print(f'Total files scaned:  {file_total}')
-    print(f'  No change files:   {file_total - file_update}')
+    print(f'  No exif:           {file_no_exif}')
+    print(f'  Skip files:        {file_total - file_update}')
     print(f'    Same name:       {file_no_change}')
     print(f'    No timing:       {file_no_timing}')
-    print(f'      No exif:       {file_no_exif}')
     if args.dry:
         print(f'  Update files(dry): {file_update}')
     else:
