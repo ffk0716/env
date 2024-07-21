@@ -33,9 +33,9 @@ def roots_to_delta(a, b):
 
 
 def split_path(path):
-    head, tail = os.path.split(old_path)
+    head, tail = os.path.split(path)
     root, ext = os.path.splitext(tail)
-    return head, root, ext.lower()
+    return head, root, ext.lower().lstrip('.')
 
 
 def get_tag(fname, tag_name):
@@ -56,12 +56,12 @@ def get_tag(fname, tag_name):
         return None
 
 
-def get_utc(fname):
-    _, ext = os.path.splitext(fname)
+def get_utc(fname, default_time_zone):
+    _, _, ext = split_path(fname)
     # jpg files
     time_string = get_tag(fname, "EXIF:CreateDate")
     if time_string != None:
-        assert ext == ".jpg" or ext == ".heic"
+        assert ext in ["jpg", "heic"]
         c_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
         time_string = get_tag(fname, "EXIF:OffsetTime")
         if time_string != None:
@@ -72,32 +72,48 @@ def get_utc(fname):
     # mov files
     time_string = get_tag(fname, "QuickTime:CreationDate")
     if time_string != None:
-        assert ext == ".mov"
+        assert ext in ["mov"]
         c_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S%z')
         return c_time, c_time.utcoffset()
     # mp4 files
     time_string = get_tag(fname, "QuickTime:CreateDate")
     if time_string != None:
-        assert ext.lower() == ".mp4"
+        assert ext in ["mp4"]
         c_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
-        time_string = get_tag(fname, "QuickTime:TimeZone")
-        if time_string != None:
-            time_zone = dt.timedelta(minutes=int(time_string))
-            c_time += time_zone
-        else:
-            time_zone = None
-        return c_time, time_zone
+        encoder = get_tag(fname, "QuickTime:Encoder")
+        if encoder in ['DJIAction2']:  #c_time = local, no timezone
+            assert get_tag(fname, "QuickTime:TimeZone") == None
+            if default_time_zone:
+                c_time += dt.timedelta(hours=default_time_zone)
+            return c_time, None
+        elif encoder in ['DJI OsmoAction4']:  #c_time = UTC, no timezone
+            assert get_tag(fname, "QuickTime:TimeZone") == None
+            if default_time_zone:
+                c_time += dt.timedelta(hours=default_time_zone)
+            return c_time, None
+        else:  # if timezone exist, c_time = UTC, else c_time = local
+            time_string = get_tag(fname, "QuickTime:TimeZone")
+            if time_string != None:
+                time_zone = dt.timedelta(minutes=int(time_string))
+                c_time += time_zone
+            else:
+                time_zone = None
+            return c_time, time_zone
     return None, None
 
 
-def get_new_root(old_path, offset):
-    c_time, time_zone = get_utc(old_path)
+def get_new_root(old_path, offset, default_time_zone):
+    c_time, time_zone = get_utc(old_path, default_time_zone)
     info = []
     if c_time == None:
         _, old_root, _ = split_path(old_path)
         c_time = str_to_datetime(old_root)
         info.append("no exif")
     if c_time:
+        if time_zone == None:
+            if default_time_zone:
+                pass
+                #c_time += dt.timedelta(hours=default_time_zone)
         if offset:
             c_time += dt.timedelta(hours=offset)
         c_time = c_time.strftime(dropbox_format)
@@ -116,26 +132,40 @@ def get_new_root(old_path, offset):
 if __name__ == '__main__':
     # Get input file name
     parser = argparse.ArgumentParser("my exif")
-    parser.add_argument('input', nargs='+', help='input files')
+    parser.add_argument('-i', '--input', nargs='+', help='input files')
     parser.add_argument('-n', '--dry', action="store_true", help='dry run')
     parser.add_argument('-v', '--verbose', action="store_true", help='verbose')
     parser.add_argument('-o', '--offset', type=int, help='offset')
+    parser.add_argument('-z', '--timezone', type=int, default=8, help='default timezone if not exist')
+    parser.add_argument('-e',
+                        '--ext',
+                        nargs='+',
+                        type=str,
+                        default=['jpg', 'mov', 'mp4', 'heic'],
+                        help='handle file only with specified extensions')
     args = parser.parse_args()
 
     file_total = 0
     file_no_update = 0
     file_no_exif = 0
     file_update = 0
-    for old_path in args.input:
+
+    def handle(old_path):
+        global file_total
+        global file_no_update
+        global file_no_exif
+        global file_update
+        head, old_root, ext = split_path(old_path)
+        if args.ext and not ext in args.ext:
+            return
         file_total += 1
         # get new root
-        new_root, info = get_new_root(old_path, args.offset)
+        new_root, info = get_new_root(old_path, args.offset, args.timezone)
         if new_root == None:
             if args.verbose:
                 print(f"{info}: skip, no exif")
             file_no_exif += 1
-            continue
-        head, old_root, ext = split_path(old_path)
+            return
 
         # keep old name
         if dropbox_re.match(old_root):
@@ -146,7 +176,7 @@ if __name__ == '__main__':
             if args.verbose:
                 print(f'{info}: skip, no change')
             file_no_update += 1
-            continue
+            return
 
         # get delta string
         d = roots_to_delta(old_root, new_root)
@@ -156,10 +186,10 @@ if __name__ == '__main__':
             d_str = ''
 
         # fix name conflict
-        new_path_try = os.path.join(head, new_root + ext)
+        new_path_try = os.path.join(head, f'{new_root}.{ext}')
         file_count = 1
         while os.path.isfile(new_path_try):
-            new_path_try = os.path.join(head, f'{new_root}-{file_count}' + ext)
+            new_path_try = os.path.join(head, f'{new_root}-{file_count}.{ext}')
             file_count += 1
 
         # rentime_offset ame
@@ -168,6 +198,23 @@ if __name__ == '__main__':
         if not args.dry:
             os.rename(old_path, new_path_try)
             file_update += 1
+
+    file_list = []
+    for f in args.input:
+        if os.path.isdir(f):
+            for dirpath, dirnames, filenames in os.walk(f):
+                for filename in filenames:
+                    if filename in ['.DS_Store']:
+                        continue
+                    file_list.append(os.path.join(dirpath, filename))
+        else:
+            file_list.append(f)
+    for f in sorted(file_list):
+        try:
+            handle(f)
+        except Exception as e:
+            print(f'{f}: error')
+            print(e)
     print(f'Total files scaned: {file_total}')
     print(f'No update files:    {file_no_update}')
     print(f'No exif files:      {file_no_exif}')
