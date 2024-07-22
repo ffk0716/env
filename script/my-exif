@@ -57,22 +57,27 @@ class tag_agent():
     et = exiftool.ExifToolHelper()
 
     def __init__(self):
-        pass
+        self.fname = None
+        self.tags = set()
+        self.cache = None
 
     def get_tag(self, fname, tag_name):
-        if type(tag_name) == list:
-            for t in tag_name:
-                v = self.get_tag(fname, t)
-                if v != None:
-                    return v
-            else:
-                return None
+        if not type(tag_name) == list:
+            tag_name = [tag_name]
+        if fname != self.fname:
+            self.fname = fname
+            self.cache = None
+        for t in tag_name:
+            if not t in self.tags:
+                self.tags.add(t)
+                self.cache = None
 
-        tags = self.et.get_tags(fname, tag_name)[0]
-        if tag_name in tags:
-            return tags[tag_name]
-        if len(tags) > 1:
-            print(tags)
+        if self.cache == None:
+            self.cache = self.et.get_tags(fname, self.tags)[0]
+
+        for t in tag_name:
+            if t in self.cache:
+                return self.cache[t]
         return None
 
 
@@ -87,7 +92,7 @@ class file_agent():
         self.no_time_reason = 'no tag'
         self.no_size = False
         self.author = None
-        self.dev = None
+        self.model = None
         self.tail = None
         self.verbose_level = 2
         if os.path.getsize(fname) == 0:
@@ -96,7 +101,8 @@ class file_agent():
             return
         self.author = self.ta.get_tag(self.fname, ["EXIF:Artist", "QuickTime:Artist"])
         _, _, ext = split_path(fname)
-        self.dev = self.ta.get_tag(fname, ["EXIF:Model", "QuickTime:Model", "XML:DeviceModelName", "QuickTime:Encoder"])
+        self.model = self.ta.get_tag(fname,
+                                     ["EXIF:Model", "QuickTime:Model", "XML:DeviceModelName", "QuickTime:Encoder"])
         # jpg files
         time_string = self.ta.get_tag(fname, "EXIF:CreateDate")
         if time_string != None:
@@ -126,16 +132,16 @@ class file_agent():
                 self.c_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
             self.timezone = self.ta.get_tag(fname, "QuickTime:TimeZone")
             is_local = False
-            if self.dev in ['DJIAction2', 'DJI OsmoAction4']:
+            if self.model in ['DJIAction2', 'DJI OsmoAction4']:
                 assert self.timezone == None
-            elif self.dev in ['FDR-AX43A']:
+            elif self.model in ['FDR-AX43A']:
                 assert self.timezone != None
                 self.timezone = dt.timedelta(minutes=int(self.timezone))
             else:
                 assert self.timezone == None
-                if self.dev:
+                if self.model:
                     self.verbose_level = min(self.verbose_level, 0)
-                    self.warning_msg.append(f'unsupported device {self.dev}')
+                    self.warning_msg.append(f'unsupported device {self.model}')
             if self.c_time:
                 if not is_local:
                     if self.timezone:
@@ -158,8 +164,8 @@ class file_agent():
             self.author = ''
         s += f" {self.author:10}"
 
-        if self.dev:
-            s += f" {self.dev:15}"
+        if self.model:
+            s += f" {self.model:15}"
         else:
             s += f" {'':15}"
         return s
