@@ -211,7 +211,6 @@ if __name__ == '__main__':
         a = file_agent(old_path, default_time_zone)
         c_time, timezone = a.c_time, a.timezone
         if c_time == None:
-            a.set_vb(0, "skip, no timing tag")
             file_no_exif += 1
             _, old_root, _ = split_path(old_path)
             c_time = str_to_datetime(old_root)
