@@ -86,7 +86,7 @@ class file_agent():
 
     def __init__(self, fname, default_time_zone):
         self.fname = fname
-        self.c_time = None
+        self.create_time = None
         self.timezone = None
         self.warning_msg = []
         self.no_time_reason = 'no tag'
@@ -110,7 +110,7 @@ class file_agent():
             if time_string == "0000:00:00 00:00:00":
                 self.no_time_reason = "0000"
             else:
-                self.c_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
+                self.create_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
             time_string = self.ta.get_tag(fname, "EXIF:OffsetTime")
             if time_string != None:
                 self.timezone = dt.datetime.strptime(time_string, '%z').utcoffset()
@@ -119,8 +119,8 @@ class file_agent():
         time_string = self.ta.get_tag(fname, "QuickTime:CreationDate")
         if time_string != None:
             assert ext in ["mov"]
-            self.c_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S%z')
-            self.timezone = self.c_time.utcoffset()
+            self.create_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S%z')
+            self.timezone = self.create_time.utcoffset()
             return
         # mp4 files
         time_string = self.ta.get_tag(fname, "QuickTime:CreateDate")
@@ -129,7 +129,7 @@ class file_agent():
             if time_string == "0000:00:00 00:00:00":
                 self.no_time_reason = "0000"
             else:
-                self.c_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
+                self.create_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
             self.timezone = self.ta.get_tag(fname, "QuickTime:TimeZone")
             is_local = False
             if self.model in ['DJIAction2', 'DJI OsmoAction4']:
@@ -142,17 +142,17 @@ class file_agent():
                 if self.model:
                     self.verbose_level = min(self.verbose_level, 0)
                     self.warning_msg.append(f'unsupported device {self.model}')
-            if self.c_time:
+            if self.create_time:
                 if not is_local:
                     if self.timezone:
-                        self.c_time += self.timezone
+                        self.create_time += self.timezone
                     else:
-                        self.c_time += dt.timedelta(hours=default_time_zone)
+                        self.create_time += dt.timedelta(hours=default_time_zone)
 
     def info(self):
         s = ''
-        if self.c_time:
-            s += self.c_time.strftime(dropbox_format)
+        if self.create_time:
+            s += self.create_time.strftime(dropbox_format)
         else:
             s += f'{self.no_time_reason:19}'
         s += ' '
@@ -208,17 +208,17 @@ if __name__ == '__main__':
 
     def get_new_root(old_path, offset, default_time_zone):
         global file_no_exif
-        a = file_agent(old_path, default_time_zone)
-        c_time = a.c_time
-        if c_time == None:
+        fa = file_agent(old_path, default_time_zone)
+        create_time = fa.create_time
+        if create_time == None:
             file_no_exif += 1
             _, old_root, _ = split_path(old_path)
-            c_time = str_to_datetime(old_root)
-        if c_time:
+            create_time = str_to_datetime(old_root)
+        if create_time:
             if offset:
-                c_time += dt.timedelta(hours=offset)
-            c_time = c_time.strftime(dropbox_format)
-        return c_time, a
+                create_time += dt.timedelta(hours=offset)
+            create_time = create_time.strftime(dropbox_format)
+        return create_time, fa
 
     def handle(max_n, old_path):
         global file_total
@@ -228,11 +228,11 @@ if __name__ == '__main__':
         head, old_root, ext = split_path(f)
         file_total += 1
         # get new root
-        new_root, a = get_new_root(old_path, args.offset, args.timezone)
+        new_root, fa = get_new_root(old_path, args.offset, args.timezone)
         if new_root == None:
-            a.set_vb(1, "skip, no timing info")
+            fa.set_vb(1, "skip, no timing info")
             file_no_timing += 1
-            return a
+            return fa
 
         # keep old name
         if dropbox_re.match(old_root):
@@ -243,9 +243,9 @@ if __name__ == '__main__':
 
         # skip if name does not change
         if old_root == new_root:
-            a.set_vb(2, "skip, no change")
+            fa.set_vb(2, "skip, no change")
             file_no_change += 1
-            return a
+            return fa
 
         # get delta string
         d = roots_to_delta(old_root, new_root)
@@ -262,11 +262,11 @@ if __name__ == '__main__':
             file_count += 1
 
         # rentime_offset ame
-        a.set_vb(0, f'-> {d_str} {new_path_try}')
+        fa.set_vb(0, f'-> {d_str} {new_path_try}')
         file_update += 1
         if not args.dry:
             os.rename(old_path, new_path_try)
-        return a
+        return fa
 
     file_list = []
     for f in args.input:
@@ -306,19 +306,18 @@ if __name__ == '__main__':
     max_n = 0
     if file_list2:
         max_n = max(get_len(s) for s in file_list2)
-    i = 0
+    i = 1
     for f in sorted(file_list2):
         try:
-            a = handle(max_n, f)
+            fa = handle(max_n, f)
         except Exception as e:
             print(f'debug: {f}')
             print(e)
             exit(1)
-        if a.verbose_level <= args.verbose:
+        if fa.verbose_level <= args.verbose:
             prefix_n = len(str(total_n))
-            prefix = f"({i:>{prefix_n}}/{total_n})"
-            print(prefix, end='')
-            a.print()
+            print(f"({i:>{prefix_n}}/{total_n})", end='')
+            fa.print()
         i += 1
     assert file_total == (file_no_timing + file_no_change + file_update)
     print(f'Total files scaned:  {file_total}')
