@@ -56,7 +56,7 @@ class tag_agent():
 
     et = exiftool.ExifToolHelper()
 
-    def __init__(self, fname):
+    def __init__(self):
         pass
 
     def get_tag(self, fname, tag_name):
@@ -77,6 +77,7 @@ class tag_agent():
 
 
 class file_agent():
+    ta = tag_agent()
 
     def __init__(self, fname, default_time_zone):
         self.fname = fname
@@ -93,38 +94,37 @@ class file_agent():
             self.no_size = True
             self.no_time_reason = 'empty file'
             return
-        te = tag_agent(fname)
-        self.author = te.get_tag(self.fname, ["EXIF:Artist", "QuickTime:Artist"])
+        self.author = self.ta.get_tag(self.fname, ["EXIF:Artist", "QuickTime:Artist"])
         _, _, ext = split_path(fname)
-        self.dev = te.get_tag(fname, ["EXIF:Model", "QuickTime:Model", "XML:DeviceModelName", "QuickTime:Encoder"])
+        self.dev = self.ta.get_tag(fname, ["EXIF:Model", "QuickTime:Model", "XML:DeviceModelName", "QuickTime:Encoder"])
         # jpg files
-        time_string = te.get_tag(fname, "EXIF:CreateDate")
+        time_string = self.ta.get_tag(fname, "EXIF:CreateDate")
         if time_string != None:
             assert ext in ["jpg", "heic"], f"unknown extension: {ext}"
             if time_string == "0000:00:00 00:00:00":
                 self.no_time_reason = "0000"
             else:
                 self.c_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
-            time_string = te.get_tag(fname, "EXIF:OffsetTime")
+            time_string = self.ta.get_tag(fname, "EXIF:OffsetTime")
             if time_string != None:
                 self.timezone = dt.datetime.strptime(time_string, '%z').utcoffset()
             return
         # mov files
-        time_string = te.get_tag(fname, "QuickTime:CreationDate")
+        time_string = self.ta.get_tag(fname, "QuickTime:CreationDate")
         if time_string != None:
             assert ext in ["mov"]
             self.c_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S%z')
             self.timezone = self.c_time.utcoffset()
             return
         # mp4 files
-        time_string = te.get_tag(fname, "QuickTime:CreateDate")
+        time_string = self.ta.get_tag(fname, "QuickTime:CreateDate")
         if time_string != None:
             assert ext in ["mp4", "mov"]
             if time_string == "0000:00:00 00:00:00":
                 self.no_time_reason = "0000"
             else:
                 self.c_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
-            self.timezone = te.get_tag(fname, "QuickTime:TimeZone")
+            self.timezone = self.ta.get_tag(fname, "QuickTime:TimeZone")
             is_local = False
             if self.dev in ['DJIAction2', 'DJI OsmoAction4']:
                 assert self.timezone == None
