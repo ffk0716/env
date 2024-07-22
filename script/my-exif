@@ -101,7 +101,6 @@ class file_agent():
         time_string = te.get_tag(fname, "EXIF:CreateDate")
         if time_string != None:
             assert ext in ["jpg", "heic"], f"unknown extension: {ext}"
-            print(f'debug: {time_string}')
             if time_string == "0000:00:00 00:00:00":
                 self.no_time_reason = "0000"
             else:
