@@ -176,7 +176,7 @@ class file_agent():
         if n <= self.verbose_level:
             self.verbose_level = n
 
-    def print(self):
+    def print(self, max_n):
         print(f"{fix_width(self.fname, max_n)}: {self.info()}: {self.tail}")
         for m in self.warning_msg:
             print(f"    {m}")
@@ -187,7 +187,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser("my exif")
     parser.add_argument('-i', '--input', nargs='+', help='input files')
     parser.add_argument('-n', '--dry', action="store_true", help='dry run')
-    parser.add_argument('-f', '--fast', action="store_true", help='ignore file with dropbox foramt')
+    parser.add_argument('-f', '--fast', action="store_true", help='ignore file with dropbox format')
     parser.add_argument('-a', '--append', action="store_true", help='append old name')
     parser.add_argument('-v', '--verbose', action='count', default=0, help='verbose')
     parser.add_argument('-o', '--offset', type=int, help='offset')
@@ -220,12 +220,12 @@ if __name__ == '__main__':
             create_time = create_time.strftime(dropbox_format)
         return create_time, fa
 
-    def handle(max_n, old_path):
+    def handle(old_path):
         global file_total
         global file_no_change
         global file_update
         global file_no_timing
-        head, old_root, ext = split_path(f)
+        head, old_root, ext = split_path(old_path)
         file_total += 1
         # get new root
         new_root, fa = get_new_root(old_path, args.offset, args.timezone)
@@ -237,8 +237,7 @@ if __name__ == '__main__':
         # keep old name
         if dropbox_re.match(old_root):
             new_root = dropbox_re.sub(new_root, old_root)
-
-        if args.append:
+        elif args.append:
             new_root = f'{new_root} {old_root}'
 
         # skip if name does not change
@@ -268,57 +267,66 @@ if __name__ == '__main__':
             os.rename(old_path, new_path_try)
         return fa
 
-    file_list = []
+    # get all files
+    file_list_total = []
     for f in args.input:
         if os.path.isdir(f):
             for dirpath, dirnames, filenames in os.walk(f):
                 for filename in filenames:
                     if filename in ['.DS_Store']:
                         continue
-                    file_list.append(os.path.join(dirpath, filename))
+                    file_list_total.append(os.path.join(dirpath, filename))
         else:
-            file_list.append(f)
+            file_list_total.append(f)
 
+    # skip files with dropbox format
     if args.fast:
-        file_list3 = []
-        for f in file_list:
-            head, old_root, ext = split_path(f)
+        t = []
+        for f in file_list_total:
+            _, old_root, _ = split_path(f)
             if not dropbox_re.match(old_root):
-                file_list3.append(f)
-        file_list = file_list3
+                t.append(f)
+        file_list_total = t
 
-    file_list2 = []
+    # skip files without specified extensions
+    file_list_scan = []
     ext_list = set()
-    for f in file_list:
-        head, old_root, ext = split_path(f)
-        if not args.ext or ext in args.ext:
-            file_list2.append(f)
-        else:
+    for f in file_list_total:
+        _, _, ext = split_path(f)
+        if args.ext and ext not in args.ext:
             ext_list.add(ext)
+        else:
+            file_list_scan.append(f)
     if '' in ext_list:
         ext_list.remove('')
         ext_list.add('<no_ext>')
-    total_n = len(file_list2)
+    total_n = len(file_list_scan)
+
+    # print file list info
     if args.verbose >= 1:
-        print(f'Total files: {len(file_list)}')
-        print(f'Total files to scan: {len(file_list2)}')
+        print(f'Total files: {len(file_list_total)}')
+        print(f'Total files to scan: {total_n}')
         print(f'Skip files: {", ".join(ext_list)}')
-    max_n = 0
-    if file_list2:
-        max_n = max(get_len(s) for s in file_list2)
+
+    # start scan
+    max_fname_width = 0
+    if file_list_scan:
+        max_fname_width = max(get_len(s) for s in file_list_scan)
     i = 1
-    for f in sorted(file_list2):
+    for fname in sorted(file_list_scan):
         try:
-            fa = handle(max_n, f)
+            fa = handle(fname)
         except Exception as e:
-            print(f'debug: {f}')
+            print(f'debug: {fname}')
             print(e)
             exit(1)
         if fa.verbose_level <= args.verbose:
             prefix_n = len(str(total_n))
-            print(f"({i:>{prefix_n}}/{total_n})", end='')
-            fa.print()
+            print(f"({i:>{prefix_n}}/{total_n}) ", end='')
+            fa.print(max_fname_width)
         i += 1
+
+    # print summary
     assert file_total == (file_no_timing + file_no_change + file_update)
     print(f'Total files scaned:  {file_total}')
     print(f'  No exif:           {file_no_exif}')
