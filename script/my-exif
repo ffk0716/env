@@ -209,7 +209,7 @@ if __name__ == '__main__':
     def get_new_root(old_path, offset, default_time_zone):
         global file_no_exif
         a = file_agent(old_path, default_time_zone)
-        c_time, timezone = a.c_time, a.timezone
+        c_time = a.c_time
         if c_time == None:
             file_no_exif += 1
             _, old_root, _ = split_path(old_path)
