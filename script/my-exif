@@ -17,9 +17,8 @@ def get_len(s):
 
 
 def fix_width(s, w):
-    l = len(s)
-    rl = get_len(s)
-    w = w - (rl - l)
+    ch_n = get_len(s) - len(s)
+    w -= ch_n
     return f'{s:{w}}'
 
 
