@@ -132,7 +132,6 @@ class file_agent():
             else:
                 self.create_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
             self.timezone = self.ta.get_tag(fname, "QuickTime:TimeZone")
-            is_local = False
             if self.model in ['DJIAction2', 'DJI OsmoAction4']:
                 assert self.timezone == None
             elif self.model in ['FDR-AX43A']:
@@ -144,11 +143,10 @@ class file_agent():
                     self.verbose_level = min(self.verbose_level, 0)
                     self.warning_msg.append(f'unsupported device {self.model}')
             if self.create_time:
-                if not is_local:
-                    if self.timezone:
-                        self.create_time += self.timezone
-                    else:
-                        self.create_time += dt.timedelta(hours=default_time_zone)
+                if self.timezone:
+                    self.create_time += self.timezone
+                else:
+                    self.create_time += dt.timedelta(hours=default_time_zone)
 
     def info(self):
         s = ''
