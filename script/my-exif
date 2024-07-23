@@ -67,18 +67,15 @@ class tag_agent():
         if fname != self.fname:
             self.fname = fname
             self.cache = None
-        for t in tag_name:
-            if not t in self.tags:
-                self.tags.add(t)
-                self.cache = None
+        t = set(tag_name)
+        if not t.issubset(self.tags):
+            self.tags.update(t)
+            self.cache = None
 
         if self.cache == None:
             self.cache = self.et.get_tags(fname, self.tags)[0]
 
-        hit = []
-        for t in tag_name:
-            if t in self.cache:
-                hit.append(self.cache[t])
+        hit = [self.cache[t] for t in tag_name if t in self.cache]
         assert len(hit) <= 1, f'multiple tag name hit: {hit}'
         if len(hit) == 1:
             return hit[0]
