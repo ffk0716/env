@@ -119,14 +119,14 @@ class file_agent():
         # mov files
         time_string = self.ta.get_tag(fname, "QuickTime:CreationDate")
         if time_string != None:
-            assert ext in ["mov"]
+            assert ext in ["mov"], f"unknown extension: {ext}"
             self.create_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S%z')
             self.timezone = self.create_time.utcoffset()
             return
         # mp4 files
         time_string = self.ta.get_tag(fname, "QuickTime:CreateDate")
         if time_string != None:
-            assert ext in ["mp4", "mov"]
+            assert ext in ["mp4", "mov"], f"unknown extension: {ext}"
             if time_string == "0000:00:00 00:00:00":
                 self.no_time_reason = "0000"
             else:
