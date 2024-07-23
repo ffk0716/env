@@ -177,8 +177,8 @@ class file_agent():
         if n <= self.verbose_level:
             self.verbose_level = n
 
-    def print(self, max_n):
-        print(f"{fix_width(self.fname, max_n)}: {self.info()}: {self.tail}")
+    def print(self):
+        print(f"{self.info()}: {self.tail}")
         for m in self.warning_msg:
             print(f"    {m}")
 
@@ -323,8 +323,8 @@ if __name__ == '__main__':
             exit(1)
         if fa.verbose_level <= args.verbose:
             prefix_n = len(str(total_n))
-            print(f"({i:>{prefix_n}}/{total_n}) ", end='')
-            fa.print(max_fname_width)
+            print(f"({i:>{prefix_n}}/{total_n}) {fix_width(fname, max_fname_width)}: ", end='')
+            fa.print()
         i += 1
 
     # print summary
