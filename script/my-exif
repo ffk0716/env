@@ -24,8 +24,7 @@ def fix_width(s, w):
 
 def delta_to_str(d):
     if d < dt.timedelta():
-        d = -d
-        return f'-{d}'
+        return f'-{-d}'
     return f'+{d}'
 
 
@@ -146,27 +145,6 @@ class file_agent():
                 else:
                     self.create_time += dt.timedelta(hours=default_time_zone)
 
-    def info(self):
-        s = ''
-        if self.create_time:
-            s += self.create_time.strftime(dropbox_format)
-        else:
-            s += f'{self.no_time_reason:19}'
-        s += ' '
-        if self.timezone:
-            s += delta_to_str(self.timezone)
-        else:
-            s += ' ' * 8
-        if not self.author:
-            self.author = ''
-        s += f" {self.author:10}"
-
-        if self.model:
-            s += f" {self.model:15}"
-        else:
-            s += f" {'':15}"
-        return s
-
     def set_vb(self, n, tail):
         if self.tail == None or n <= self.verbose_level:
             self.tail = tail
@@ -174,7 +152,24 @@ class file_agent():
             self.verbose_level = n
 
     def print(self):
-        print(f"{self.info()}: {self.tail}")
+
+        def p(s, n):
+            return f" {s:{n}}" if s else f" {'':{n}}"
+
+        info_str = ''
+
+        if self.create_time:
+            info_str += self.create_time.strftime(dropbox_format)
+        else:
+            info_str += f'{self.no_time_reason:19}'
+        info_str += ' '
+        if self.timezone:
+            info_str += delta_to_str(self.timezone)
+        else:
+            info_str += ' ' * 8
+        info_str += p(self.author, 10)
+        info_str += p(self.model, 15)
+        print(f"{info_str}: {self.tail}")
         for m in self.warning_msg:
             print(f"    {m}")
 
