@@ -75,9 +75,13 @@ class tag_agent():
         if self.cache == None:
             self.cache = self.et.get_tags(fname, self.tags)[0]
 
+        hit = []
         for t in tag_name:
             if t in self.cache:
-                return self.cache[t]
+                hit.append(self.cache[t])
+        assert len(hit) <= 1, f'multiple tag name hit: {hit}'
+        if len(hit) == 1:
+            return hit[0]
         return None
 
 
