@@ -110,7 +110,7 @@ class file_agent():
         # jpg files
         time_string = self.ta.get_tag(fname, "EXIF:CreateDate")
         if time_string != None:
-            assert ext in ["jpg", "heic"], f"unknown extension: {ext}"
+            assert ext in ["jpg", "heic", "jpeg"], f"unknown extension: {ext}"
             if time_string == "0000:00:00 00:00:00":
                 self.no_time_reason = "0000"
             else:
@@ -310,7 +310,7 @@ if __name__ == '__main__':
     if args.verbose >= 1:
         print(f'Total files: {len(file_list_total)}')
         print(f'Total files to scan: {total_n}')
-        print(f'Skip files: {", ".join(ext_list)}')
+        print(f'Skip files: {", ".join(sorted(ext_list))}')
 
     # start scan
     max_fname_width = 0
