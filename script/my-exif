@@ -12,9 +12,8 @@ dropbox_re = re.compile(r'(\d{4}-\d{2}-\d{2} \d{2}\.\d{2}\.\d{2})')
 
 # handle Chinese character correctly
 def get_len(s):
-    l = len(s)
-    utf8_l = len(s.encode('utf-8'))
-    return int((utf8_l - l) / 2 + l)
+    l = len(s) + len(s.encode('utf-8'))
+    return l // 2
 
 
 def fix_width(s, w):
