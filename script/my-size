@@ -18,6 +18,7 @@ if len(args.input) == 1:
 # Transfer
 total_size = 0
 import progressbar as pb
+
 widgets = [pb.Counter(format='%(value)02d/%(max_value)d'), ' ', pb.Percentage(), ' ', pb.Bar(), ' ']
 pbar = pb.ProgressBar(widgets=widgets, redirect_stdout=True)
 for name in pbar(args.input):

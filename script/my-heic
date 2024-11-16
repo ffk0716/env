@@ -34,6 +34,7 @@ import tempfile
 import shutil
 import progressbar as pb
 from wand.image import Image
+
 widgets = [
     pb.Counter(format='%(value)02d/%(max_value)d'), ' ',
     pb.Percentage(), ' ',

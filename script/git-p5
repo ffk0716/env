@@ -107,8 +107,7 @@ def submit(sub_args):
 
 def set_config(sub_args):
     parser = ArgumentParser('git p5 config')
-    parser.add_argument(
-        '-p', '--path', metavar='PATH', required=True, help='p4 path')
+    parser.add_argument('-p', '--path', metavar='PATH', required=True, help='p4 path')
     sub_opts = parser.parse_args(sub_args)
     config = configparser.ConfigParser()
     if not 'p4' in config:

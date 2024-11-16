@@ -5,8 +5,10 @@ import plistlib
 
 ret = subprocess.check_output("system_profiler SPPowerDataType -xml", shell=True)
 
+
 def dump(t):
     print(yaml.dump(t, default_flow_style=False))
+
 
 def find_dict(t):
     ret = []
@@ -27,6 +29,7 @@ def find_dict2(t, v):
         if v in d.keys():
             print(yaml.dump(d, default_flow_style=False))
 
+
 def find_data(t, key):
     for d in find_dict(t):
         if key in d.keys():
@@ -34,7 +37,7 @@ def find_data(t, key):
 
 
 pl = plistlib.loads(ret)
-del pl[0]['_properties'] # we don't need this
+del pl[0]['_properties']  # we don't need this
 find_dict2(pl, "sppower_ac_charger_information")
 
 a = find_data(pl, 'sppower_ac_charger_watts')
