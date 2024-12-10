@@ -1,2 +1,4 @@
 GitPython
 PyExifTool
+ffmpeg-python
+humanize
