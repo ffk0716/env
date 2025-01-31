@@ -124,7 +124,7 @@ class file_agent():
             else:
                 self.create_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
             self.timezone = self.ta.get_tag(fname, "QuickTime:TimeZone")
-            if self.model in ['DJIAction2', 'DJI OsmoAction4']:
+            if self.model in ['iPhone 16', 'DJIAction2', 'DJI OsmoAction4']:
                 assert self.timezone == None
             elif self.model in ['FDR-AX43A']:
                 assert self.timezone != None
