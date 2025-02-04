@@ -1,0 +1,343 @@
+#!/usr/bin/env python3
+
+import argparse
+import datetime as dt
+import exiftool
+import os
+import re
+
+dropbox_format = '%Y-%m-%d %H.%M.%S'
+dropbox_re = re.compile(r'(\d{4}-\d{2}-\d{2} \d{2}\.\d{2}\.\d{2})')
+
+
+# handle Chinese character correctly
+def get_len(s):
+    l = len(s) + len(s.encode('utf-8'))
+    return l // 2
+
+
+def fix_width(s, w):
+    ch_n = get_len(s) - len(s)
+    w -= ch_n
+    return f'{s:{w}}'
+
+
+def delta_to_str(d):
+    if d < dt.timedelta():
+        return f'-{-d}'
+    return f'+{d}'
+
+
+def str_to_datetime(s):
+    if not dropbox_re.match(s):
+        return None
+    s = dropbox_re.search(s).group(1)
+    return dt.datetime.strptime(s, dropbox_format)
+
+
+def roots_to_delta(a, b):
+    a = str_to_datetime(a)
+    b = str_to_datetime(b)
+    if a and b:
+        return b - a
+    return None
+
+
+def split_path(path):
+    head, tail = os.path.split(path)
+    root, ext = os.path.splitext(tail)
+    return head, root, ext.lower().lstrip('.')
+
+
+class tag_agent():
+
+    et = exiftool.ExifToolHelper()
+
+    def __init__(self):
+        self.fname = None
+        self.tags = set()
+        self.cache = None
+
+    def get_tag(self, fname, tag_name):
+        if not type(tag_name) == list:
+            tag_name = [tag_name]
+        if fname != self.fname:
+            self.fname = fname
+            self.cache = None
+        t = set(tag_name)
+        if not t.issubset(self.tags):
+            self.tags.update(t)
+            self.cache = None
+
+        if self.cache == None:
+            self.cache = self.et.get_tags(fname, self.tags)[0]
+
+        hit = [self.cache[t] for t in tag_name if t in self.cache]
+        assert len(hit) <= 1, f'multiple tag name hit: {hit}'
+        if len(hit) == 1:
+            return hit[0]
+        return None
+
+
+class file_agent():
+    ta = tag_agent()
+
+    def __init__(self, fname, default_time_zone):
+        self.fname = fname
+        self.create_time = None
+        self.timezone = None
+        self.warning_msg = []
+        self.no_time_reason = 'no tag'
+        self.author = None
+        self.model = None
+        self.tail = None
+        self.verbose_level = 2
+        self.author = self.ta.get_tag(self.fname, ["EXIF:Artist", "QuickTime:Artist"])
+        _, _, ext = split_path(fname)
+        self.model = self.ta.get_tag(fname,
+                                     ["EXIF:Model", "QuickTime:Model", "XML:DeviceModelName", "QuickTime:Encoder"])
+        # jpg files
+        time_string = self.ta.get_tag(fname, "EXIF:CreateDate")
+        if time_string != None:
+            assert ext in ["jpg", "heic", "jpeg"], f"unknown extension: {ext}"
+            if time_string == "0000:00:00 00:00:00":
+                self.no_time_reason = "0000"
+            else:
+                self.create_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
+            time_string = self.ta.get_tag(fname, "EXIF:OffsetTime")
+            if time_string != None:
+                self.timezone = dt.datetime.strptime(time_string, '%z').utcoffset()
+            return
+        # mov files
+        time_string = self.ta.get_tag(fname, ["QuickTime:CreationDate", "H264:DateTimeOriginal"])
+        if time_string != None:
+            assert ext in ["mov", "mp4"], f"unknown extension: {ext}"
+            self.create_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S%z')
+            self.timezone = self.create_time.utcoffset()
+            return
+        # mp4 files
+        time_string = self.ta.get_tag(fname, ["QuickTime:CreateDate"])
+        if time_string != None:
+            assert ext in ["mp4", "mov"], f"unknown extension: {ext}"
+            if time_string == "0000:00:00 00:00:00":
+                self.no_time_reason = "0000"
+            else:
+                self.create_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
+            self.timezone = self.ta.get_tag(fname, "QuickTime:TimeZone")
+            if self.model in ['DJIAction2', 'DJI OsmoAction4']:
+                assert self.timezone == None
+            elif self.model in ['FDR-AX43A']:
+                assert self.timezone != None
+                self.timezone = dt.timedelta(minutes=int(self.timezone))
+            else:
+                assert self.timezone == None
+                if self.model:
+                    self.verbose_level = min(self.verbose_level, 0)
+                    self.warning_msg.append(f'unsupported device {self.model}')
+            if self.create_time:
+                if self.timezone:
+                    self.create_time += self.timezone
+                else:
+                    self.create_time += dt.timedelta(hours=default_time_zone)
+
+    def set_vb(self, n, tail):
+        if self.tail == None or n <= self.verbose_level:
+            self.tail = tail
+        if n <= self.verbose_level:
+            self.verbose_level = n
+
+    def get_m(self):
+        time_string = self.ta.get_tag(self.fname, "File:FileModifyDate")
+        assert time_string
+        return dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S%z')
+
+    def print(self):
+
+        def p(s, n):
+            return f" {s:{n}}" if s else f" {'':{n}}"
+
+        info_str = ''
+
+        if self.create_time:
+            info_str += self.create_time.strftime(dropbox_format)
+        else:
+            info_str += f'{self.no_time_reason:19}'
+        info_str += ' '
+        if self.timezone:
+            info_str += delta_to_str(self.timezone)
+        else:
+            info_str += ' ' * 8
+        info_str += p(self.author, 10)
+        info_str += p(self.model, 15)
+        print(f"{info_str}: {self.tail}")
+        for m in self.warning_msg:
+            print(f"    {m}")
+
+
+if __name__ == '__main__':
+    # Get input file name
+    parser = argparse.ArgumentParser("my exif")
+    parser.add_argument('-i', '--input', nargs='+', help='input files')
+    parser.add_argument('-n', '--dry', action="store_true", help='dry run')
+    args = parser.parse_args()
+
+    et = exiftool.ExifToolHelper()
+    for fname in args.input:
+        t = str_to_datetime(fname)
+        t -= dt.timedelta(hours=8)
+        tag = 'QuickTime:CreateDate'
+        cache = et.get_tags(fname, ['QuickTime:CreateDate'])[0]
+        cache = cache[tag]
+        print(f'{fname}: {cache} -> {t}')
+        if not args.dry:
+            et.set_tags(fname, tags={tag: t})
+
+    exit()
+    file_total = 0
+    file_no_timing = 0
+    file_no_exif = 0
+    file_no_change = 0
+    file_update = 0
+    file_error = 0
+    file_empty = 0
+
+    def get_new_root(old_path, offset, default_time_zone):
+        global file_no_exif
+        fa = file_agent(old_path, default_time_zone)
+        create_time = fa.create_time
+        if create_time == None:
+            file_no_exif += 1
+            _, old_root, _ = split_path(old_path)
+            create_time = str_to_datetime(old_root)
+            if create_time == None and args.modify:
+                create_time = fa.get_m()
+
+        if create_time:
+            if offset:
+                create_time += dt.timedelta(hours=offset)
+            create_time = create_time.strftime(dropbox_format)
+        return create_time, fa
+
+    def handle(old_path):
+        global file_no_change
+        global file_update
+        global file_no_timing
+        head, old_root, ext = split_path(old_path)
+        # get new root
+        new_root, fa = get_new_root(old_path, args.offset, args.timezone)
+        if new_root == None:
+            fa.set_vb(1, "skip, no timing info")
+            file_no_timing += 1
+            return fa
+
+        # keep old name
+        if dropbox_re.match(old_root):
+            new_root = dropbox_re.sub(new_root, old_root)
+        elif args.append:
+            new_root = f'{new_root} {old_root}'
+
+        # skip if name does not change
+        if old_root == new_root:
+            fa.set_vb(2, "skip, no change")
+            file_no_change += 1
+            return fa
+
+        # get delta string
+        d = roots_to_delta(old_root, new_root)
+        if d:
+            d_str = f' ({delta_to_str(d)})'
+        else:
+            d_str = ' ' * 9
+
+        # fix name conflict
+        new_path_try = os.path.join(head, f'{new_root}.{ext}')
+        file_count = 1
+        while os.path.isfile(new_path_try):
+            new_path_try = os.path.join(head, f'{new_root}-{file_count}.{ext}')
+            file_count += 1
+
+        # rentime_offset ame
+        fa.set_vb(0, f'-> {d_str} {new_path_try}')
+        file_update += 1
+        if not args.dry:
+            os.rename(old_path, new_path_try)
+        return fa
+
+    # get all files
+    file_list_total = []
+    for f in args.input:
+        if os.path.isdir(f):
+            for dirpath, dirnames, filenames in os.walk(f):
+                for filename in filenames:
+                    if filename in ['.DS_Store']:
+                        continue
+                    file_list_total.append(os.path.join(dirpath, filename))
+        else:
+            file_list_total.append(f)
+
+    # skip files with dropbox format
+    if args.fast:
+        t = []
+        for f in file_list_total:
+            _, old_root, _ = split_path(f)
+            if not dropbox_re.match(old_root):
+                t.append(f)
+        file_list_total = t
+
+    # skip files without specified extensions
+    file_list_scan = []
+    ext_list = set()
+    for f in file_list_total:
+        _, _, ext = split_path(f)
+        if args.ext and ext not in args.ext:
+            ext_list.add(ext)
+        else:
+            file_list_scan.append(f)
+    if '' in ext_list:
+        ext_list.remove('')
+        ext_list.add('<no_ext>')
+    total_n = len(file_list_scan)
+
+    # print file list info
+    if args.verbose >= 1:
+        print(f'Total files: {len(file_list_total)}')
+        print(f'Total files to scan: {total_n}')
+        print(f'Skip files: {", ".join(sorted(ext_list))}')
+
+    # start scan
+    max_fname_width = 0
+    if file_list_scan:
+        max_fname_width = max(get_len(s) for s in file_list_scan)
+    max_fname_width = min(max_fname_width, 80)
+    i = 1
+    for fname in sorted(file_list_scan):
+        file_total += 1
+        if os.path.getsize(fname) == 0:
+            file_empty += 1
+            continue
+        try:
+            fa = handle(fname)
+        except Exception as e:
+            file_error += 1
+            print(f'debug: {fname}')
+            print(e)
+            continue
+        if fa.verbose_level <= args.verbose:
+            prefix_n = len(str(total_n))
+            print(f"({i:>{prefix_n}}/{total_n}) {fix_width(fname, max_fname_width)}: ", end='')
+            fa.print()
+        i += 1
+
+    # print summary
+    assert file_total == file_no_timing + file_no_change + file_update + file_error + file_empty
+    print(f'Total files scaned:  {file_total}')
+    print(f'  No exif:           {file_no_exif}')
+    print(f'  Skip files:        {file_total - file_update}')
+    print(f'    Same name:       {file_no_change}')
+    print(f'    No timing:       {file_no_timing}')
+    print(f'    Error:           {file_error}')
+    print(f'    Empty:           {file_empty}')
+    if args.dry:
+        print(f'  Update files(dry): {file_update}')
+    else:
+        print(f'  Update files:      {file_update}')
