@@ -92,13 +92,10 @@ class file_agent():
         self.model = None
         self.tail = None
         self.verbose_level = 2
-        self.author = self.ta.get_tag(self.fname,
-                                      ["EXIF:Artist", "QuickTime:Artist"])
+        self.author = self.ta.get_tag(self.fname, ["EXIF:Artist", "QuickTime:Artist"])
         _, _, ext = split_path(fname)
-        self.model = self.ta.get_tag(fname, [
-            "EXIF:Model", "QuickTime:Model", "XML:DeviceModelName",
-            "QuickTime:Encoder"
-        ])
+        self.model = self.ta.get_tag(fname,
+                                     ["EXIF:Model", "QuickTime:Model", "XML:DeviceModelName", "QuickTime:Encoder"])
         # jpg files
         time_string = self.ta.get_tag(fname, "EXIF:CreateDate")
         if time_string != None:
@@ -106,20 +103,16 @@ class file_agent():
             if time_string == "0000:00:00 00:00:00":
                 self.no_time_reason = "0000"
             else:
-                self.create_time = dt.datetime.strptime(
-                    time_string, '%Y:%m:%d %H:%M:%S')
+                self.create_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
             time_string = self.ta.get_tag(fname, "EXIF:OffsetTime")
             if time_string != None:
-                self.timezone = dt.datetime.strptime(time_string,
-                                                     '%z').utcoffset()
+                self.timezone = dt.datetime.strptime(time_string, '%z').utcoffset()
             return
         # mov files
-        time_string = self.ta.get_tag(
-            fname, ["QuickTime:CreationDate", "H264:DateTimeOriginal"])
+        time_string = self.ta.get_tag(fname, ["QuickTime:CreationDate", "H264:DateTimeOriginal"])
         if time_string != None:
             assert ext in ["mov", "mp4"], f"unknown extension: {ext}"
-            self.create_time = dt.datetime.strptime(time_string,
-                                                    '%Y:%m:%d %H:%M:%S%z')
+            self.create_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S%z')
             self.timezone = self.create_time.utcoffset()
             return
         # mp4 files
@@ -129,8 +122,7 @@ class file_agent():
             if time_string == "0000:00:00 00:00:00":
                 self.no_time_reason = "0000"
             else:
-                self.create_time = dt.datetime.strptime(
-                    time_string, '%Y:%m:%d %H:%M:%S')
+                self.create_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
             self.timezone = self.ta.get_tag(fname, "QuickTime:TimeZone")
             if self.model in ['iPhone 16', 'DJIAction2', 'DJI OsmoAction4']:
                 assert self.timezone == None
@@ -187,29 +179,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser("my exif")
     parser.add_argument('-i', '--input', nargs='+', help='input files')
     parser.add_argument('-n', '--dry', action="store_true", help='dry run')
-    parser.add_argument('-f',
-                        '--fast',
-                        action="store_true",
-                        help='ignore file with dropbox format')
-    parser.add_argument('-a',
-                        '--append',
-                        action="store_true",
-                        help='append old name')
-    parser.add_argument('-v',
-                        '--verbose',
-                        action='count',
-                        default=0,
-                        help='verbose')
+    parser.add_argument('-f', '--fast', action="store_true", help='ignore file with dropbox format')
+    parser.add_argument('-a', '--append', action="store_true", help='append old name')
+    parser.add_argument('-v', '--verbose', action='count', default=0, help='verbose')
     parser.add_argument('-o', '--offset', type=int, help='offset')
-    parser.add_argument('-z',
-                        '--timezone',
-                        type=int,
-                        default=8,
-                        help='default timezone if not exist')
-    parser.add_argument('-m',
-                        '--modify',
-                        action="store_true",
-                        help='use modify time')
+    parser.add_argument('-z', '--timezone', type=int, default=8, help='default timezone if not exist')
+    parser.add_argument('-m', '--modify', action="store_true", help='use modify time')
     parser.add_argument('-e',
                         '--ext',
                         nargs='+',
@@ -349,9 +324,7 @@ if __name__ == '__main__':
             continue
         if fa.verbose_level <= args.verbose:
             prefix_n = len(str(total_n))
-            print(
-                f"({i:>{prefix_n}}/{total_n}) {fix_width(fname, max_fname_width)}: ",
-                end='')
+            print(f"({i:>{prefix_n}}/{total_n}) {fix_width(fname, max_fname_width)}: ", end='')
             fa.print()
         i += 1
 
