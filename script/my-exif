@@ -2,6 +2,7 @@
 
 import argparse
 import datetime as dt
+import atexit
 import exiftool
 import os
 import re
@@ -52,6 +53,7 @@ def split_path(path):
 class tag_agent():
 
     et = exiftool.ExifToolHelper()
+    atexit.register(lambda: tag_agent.et.terminate())
 
     def __init__(self):
         self.fname = None
@@ -59,7 +61,7 @@ class tag_agent():
         self.cache = None
 
     def get_tag(self, fname, tag_name):
-        if not type(tag_name) == list:
+        if not isinstance(tag_name, list):
             tag_name = [tag_name]
         if fname != self.fname:
             self.fname = fname
