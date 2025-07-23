@@ -1,35 +1,13 @@
 #!/usr/bin/env python3
 
 import argparse
-import ffmpeg
+import datetime
 import humanize
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
-
-# Get input file name
-parser = argparse.ArgumentParser()
-parser.add_argument('input', nargs='+', help='input video')
-parser.add_argument('-r', '--remove', action="store_true", help='remove input video')
-parser.add_argument('-m', '--no-metadata', action="store_true", help='copy metadata')
-parser.add_argument('-n', '--dry', action="store_true", help='dry run')
-parser.add_argument('-v', '--verbose', action="store_true", help='verbose')
-parser.add_argument('--hevc', action="store_true", help='hevc')
-parser.add_argument('--crf', type=int, help='CRF')
-parser.add_argument('-t', '--time', type=str, help='time')
-parser.add_argument('-y', action="store_true", help='overwrite output')
-parser.add_argument('-o', '--output', type=str, help='output file name')
-parser.add_argument('-a', '--add', type=str, help='output file name')
-args = parser.parse_args()
-
-
-def get_new_name(old_name):
-    new_ext = ".mp4"
-    file_name, file_ext = os.path.splitext(old_name)
-    if file_ext == new_ext:
-        file_name = file_name + '2'
-    return file_name + new_ext
 
 
 def print_size(fa, fb):
@@ -37,136 +15,101 @@ def print_size(fa, fb):
     sb = os.path.getsize(fb)
     fan, fae = os.path.splitext(fa)
     _, fbe = os.path.splitext(fb)
-    s = "{:+.1f}%: {} -> {}: {}{{{} -> .mp4}}".format((sb - sa) / sa * 100, humanize.naturalsize(sa),
-                                                      humanize.naturalsize(sb), fan, fae, fbe)
-    print(s)
+    r = (sb - sa) / sa * 100
+    sa = humanize.naturalsize(sa)
+    sb = humanize.naturalsize(sb)
+    s = f"{r:+.1f}%: {sa} -> {sb}"
     return s
 
 
 def get_duration(file):
-    """Get the duration of a video using ffprobe."""
-    cmd = 'ffprobe -i "{}" -show_entries format=duration -v quiet -of csv="p=0"'.format(file)
-    try:
-        output = subprocess.check_output(
-            cmd,
-            shell=True,  # Let this run in the shell
-            stderr=subprocess.STDOUT)
-    except subprocess.CalledProcessError as e:
-        print(e.output)
-        output = 0
-    # return round(float(output))  # ugly, but rounds your seconds up or down
+    cmd = ['ffprobe', '-i', file, '-show_entries', 'format=duration', '-v', 'quiet', '-of', 'csv=p=0']
+    output = subprocess.run(cmd, check=True, capture_output=True, text=True).stdout.strip()
     return float(output)
 
 
 def get_codec(file):
-    cmd = 'ffprobe -i "{}" -select_streams v:0 -show_entries stream=codec_name  -v quiet -of csv="p=0"'.format(file)
-    try:
-        output = subprocess.run(
-            cmd,
-            check=True,
-            shell=True,  # Let this run in the shell
-            stdout=subprocess.PIPE,
-        ).stdout.decode('utf-8').replace('\n', '')
-    except subprocess.CalledProcessError as e:
-        print(e.output)
-        output = None
-    # return round(float(output))  # ugly, but rounds your seconds up or down
+    cmd = [
+        'ffprobe', '-i', file, '-select_streams', 'v:0', '-show_entries', 'stream=codec_name', '-v', 'quiet', '-of',
+        'csv=p=0'
+    ]
+    output = subprocess.run(
+        cmd,
+        check=True,
+        stdout=subprocess.PIPE,
+    ).stdout.decode('utf-8').strip()
     return output
 
 
-if len(args.input) == 1:
-    _, ext = os.path.splitext(args.input[0])
-    if ext == ".txt":
-        with open(args.input[0], 'r') as f:
-            args.input = f.read().splitlines()
+def main():
+    # Get input file name
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('input', nargs='+', help='input video')
+    parser.add_argument('-r', '--remove', action="store_true", help='remove input video')
+    parser.add_argument('-m', '--no-metadata', action="store_true", help='copy metadata')
+    parser.add_argument('-n', '--dry', action="store_true", help='dry run')
+    parser.add_argument('-v', '--verbose', action="store_true", help='verbose')
+    parser.add_argument('--crf', type=int, default=20, help='CRF')
+    parser.add_argument('-t', '--time', type=str, help='time')
+    args = parser.parse_args()
 
-# Transfer
-final_report = []
-for old_name in args.input:
-    assert (os.path.isfile(old_name))
-    file_name, _ = os.path.splitext(old_name)
-    meta = {}
-    if not args.verbose:
-        meta.update({'loglevel': 'quiet', 'stats': None})
-    if not args.no_metadata:
-        meta.update({'map': 0})
-    meta.update({'copy_unknown': None, 'map_metadata': 0})
-    #meta.update({'tune': 'film'})
-    #meta.update({'preset': 'veryslow'})
-    #meta.update({'deinterlace': None})
-    if args.add != None:
-        a_args = args.add.split(",")
-        for a in a_args:
-            a = a.split("=")
-            if len(a) == 1:
-                a.append(None)
-            meta.update({a[0]: a[1]})
-    # hevc setting
-    if args.crf != None:
-        crf = args.crf
-    else:
-        crf = 20
-    if args.hevc:
-        meta.update({'vcodec': 'libx265'})
-        meta.update({'tag:v': 'hvc1'})
-        meta.update({'crf': crf})
-        file_name += ".h265"
-    else:
-        meta.update({'crf': crf})
-        file_name += ".h264"
-    if args.time != None:
-        meta.update({'t': args.time})
-    file_name += ".crf{}".format(crf)
-    # file name
-    if args.output != None:
-        new_name = args.output
-    else:
-        new_name = file_name + ".mp4"
+    # Transfer
+    for old_name in args.input:
+        assert (os.path.isfile(old_name))
+        file_name, _ = os.path.splitext(old_name)
+        new_name = f"{file_name}.h265.crf{args.crf}.mp4"
+        assert (old_name != new_name)
 
-    tmp_name = tempfile.mktemp(suffix=".mp4")
+        cmd = []
+        if not args.verbose:
+            cmd += ['-loglevel', 'quiet', '-stats']
+        if not args.no_metadata:
+            cmd += ['-map', '0']
+        cmd += ['-copy_unknown', '-map_metadata', '0']
+        #meta.update({'preset': 'veryslow'})
+        cmd += ['-c:v', 'libx265']
+        cmd += ['-tag:v', 'hvc1']
+        cmd += ['-crf', f'{args.crf}']
+        if args.time != None:
+            cmd += ['-t', args.time]
 
-    stream = ffmpeg.input(old_name).output(tmp_name, **meta)
-    if args.y:
-        stream = ffmpeg.overwrite_output(stream)
-    assert (old_name != new_name)
-    c = get_codec(old_name)
-    print("==== {} ====".format(old_name))
-    print("code = {}".format(c))
-    print("ffmpeg {}".format(' '.join(stream.get_args())))
-    # check for skip
-    if args.hevc:
-        if c == 'hevc':
-            print("{} is hevc, skip".format(old_name))
-            continue
-    skip = False
-    if os.path.isfile(new_name):
-        d1 = get_duration(old_name)
-        d2 = get_duration(new_name)
-        error = abs(d1 - d2) / d1
-        if error < 0.01:
-            print("{} exist with error={}, skip".format(new_name, error))
-            skip = True
-        else:
-            print("{} exist with error=abs({} - {})={}, override".format(new_name, d1, d2, error))
+        cmd = ['ffmpeg', '-i', old_name] + cmd
+        print(f"==== {old_name} -> {new_name} ====")
+        c = get_codec(old_name)
+        total_seconds = get_duration(old_name)
+        delta = datetime.timedelta(seconds=int(total_seconds))
+        fsize = humanize.naturalsize(os.path.getsize(old_name))
+        print(f"codec = {c}, time = {delta}, size = {fsize}")
 
-    if not skip:
-        if not args.dry:
-            if os.path.isfile(tmp_name):
+        skip = False
+        if os.path.isfile(new_name):
+            d1 = get_duration(old_name)
+            d2 = get_duration(new_name)
+            error = abs(d1 - d2) / d1
+            if error < 0.01:
+                print(f"{new_name} exist with error={error:.2f}, skip")
+                skip = True
+            else:
+                print("{} exist with error=abs({} - {})={}, override".format(new_name, d1, d2, error))
+
+        if not skip:
+            if not args.dry:
+                tmp_name = tempfile.mktemp(suffix=".mp4")
+                if os.path.isfile(tmp_name):
+                    os.remove(tmp_name)
+                cmd = cmd + [tmp_name]
+                print(' '.join(cmd))
+                subprocess.run(cmd, check=True, stderr=sys.stderr)
+                shutil.copyfile(tmp_name, new_name)
                 os.remove(tmp_name)
-            stream.run()
-            shutil.copyfile(tmp_name, new_name)
-            os.remove(tmp_name)
 
-    # Report
-    if os.path.isfile(new_name):
-        final_report.append(print_size(old_name, new_name))
-    # Clean up
-    if args.remove:
-        if not args.dry:
-            os.remove(old_name)
+        # Report
+        s = print_size(old_name, new_name)
+        print(s)
+        # Clean up
+        if args.remove:
+            if not args.dry:
+                os.remove(old_name)
 
-if len(args.input) > 1:
-    print("=== Final Report ===")
-    if not args.dry:
-        for l in final_report:
-            print(l)
+
+main()
