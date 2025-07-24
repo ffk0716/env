@@ -1,0 +1,56 @@
+#!/usr/bin/env python3
+
+import subprocess
+import os
+import argparse
+
+
+def concatenate_videos(video_list, output_filename):
+
+    temp_file_path = "input_videos_for_concat.txt"
+    with open(temp_file_path, "w") as f:
+        for video in video_list:
+            if not os.path.exists(video):
+                print(f"警告：找不到影片檔案 '{video}'，將跳過。")
+                continue
+            f.write(f"file '{video}'\n")
+
+    ffmpeg_command = ["ffmpeg", "-f", "concat", "-safe", "0", "-i", temp_file_path, "-c", "copy", output_filename]
+
+    print(' '.join(ffmpeg_command))
+
+    try:
+        subprocess.run(ffmpeg_command, check=True)
+        print(f"影片已成功合併為 '{output_filename}'")
+    except subprocess.CalledProcessError as e:
+        print(f"執行 FFmpeg 時發生錯誤：{e}")
+    except FileNotFoundError:
+        print("錯誤：找不到 FFmpeg。請確保 FFmpeg 已安裝並在您的系統 PATH 中。")
+    finally:
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
+            print(f"已刪除暫存檔案：{temp_file_path}")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+
+    parser.add_argument("-i",
+                        "--input",
+                        nargs="+",
+                        required=True,
+                        help=("要合併的輸入影片檔案路徑。\n"
+                              "可以輸入多個檔案名，用空格分隔，例如：\n"
+                              "  video1.mp4 video2.mp4 video3.mp4"))
+
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=str,
+        default="output.mp4",  # 預設輸出檔名
+        help="合併後輸出影片檔案的名稱 (預設: merged_output.mp4)")
+
+    args = parser.parse_args()
+
+    # 呼叫合併函數
+    concatenate_videos(args.input, args.output)
