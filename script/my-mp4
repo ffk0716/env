@@ -23,15 +23,19 @@ def print_size(fa, fb):
 
 
 def get_duration(file):
-    cmd = ['ffprobe', '-i', file, '-show_entries', 'format=duration', '-v', 'quiet', '-of', 'csv=p=0']
-    output = subprocess.run(cmd, check=True, capture_output=True, text=True).stdout.strip()
+    cmd = [
+        'ffprobe', '-i', file, '-show_entries', 'format=duration', '-v',
+        'quiet', '-of', 'csv=p=0'
+    ]
+    output = subprocess.run(cmd, check=True, capture_output=True,
+                            text=True).stdout.strip()
     return float(output)
 
 
 def get_codec(file):
     cmd = [
-        'ffprobe', '-i', file, '-select_streams', 'v:0', '-show_entries', 'stream=codec_name', '-v', 'quiet', '-of',
-        'csv=p=0'
+        'ffprobe', '-i', file, '-select_streams', 'v:0', '-show_entries',
+        'stream=codec_name', '-v', 'quiet', '-of', 'csv=p=0'
     ]
     output = subprocess.run(
         cmd,
@@ -43,10 +47,17 @@ def get_codec(file):
 
 def main():
     # Get input file name
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('input', nargs='+', help='input video')
-    parser.add_argument('-r', '--remove', action="store_true", help='remove input video')
-    parser.add_argument('-m', '--no-metadata', action="store_true", help='copy metadata')
+    parser.add_argument('-r',
+                        '--remove',
+                        action="store_true",
+                        help='remove input video')
+    parser.add_argument('-m',
+                        '--no-metadata',
+                        action="store_true",
+                        help='copy metadata')
     parser.add_argument('-n', '--dry', action="store_true", help='dry run')
     parser.add_argument('-v', '--verbose', action="store_true", help='verbose')
     parser.add_argument('--crf', type=int, default=20, help='CRF')
@@ -57,7 +68,10 @@ def main():
     for old_name in args.input:
         assert (os.path.isfile(old_name))
         file_name, _ = os.path.splitext(old_name)
-        new_name = f"{file_name}.h265.crf{args.crf}.mp4"
+        new_name = f"{file_name}.h265.crf{args.crf}"
+        if args.time:
+            new_name += f".{args.time}s"
+        new_name += ".mp4"
         assert (old_name != new_name)
 
         cmd = []
@@ -90,7 +104,8 @@ def main():
                 print(f"{new_name} exist with error={error:.2f}, skip")
                 skip = True
             else:
-                print("{} exist with error=abs({} - {})={}, override".format(new_name, d1, d2, error))
+                print("{} exist with error=abs({} - {})={}, override".format(
+                    new_name, d1, d2, error))
 
         if not skip:
             if not args.dry:
