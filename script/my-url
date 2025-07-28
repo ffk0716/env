@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+import argparse
+import os
+
+
+def create_internet_shortcut(url, fname):
+    # 確保輸出檔名以 .url 結尾
+    if not fname.lower().endswith(".url"):
+        fname += ".url"
+
+    content = f"""[InternetShortcut]
+URL={url}
+IconIndex=0
+"""
+    with open(fname, "w") as f:
+        f.write(content)
+    print(f"成功建立檔案：'{fname}'")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="建立一個 .url 檔案，用於網際網路捷徑。",
+                                     formatter_class=argparse.RawTextHelpFormatter)
+
+    parser.add_argument('-u', "--url", type=str, required=True, help="要建立捷徑的 URL，例如：https://youtu.be/aMwbnPBFhgY")
+
+    parser.add_argument("-n",
+                        "--name",
+                        type=str,
+                        required=True,
+                        help=("輸出 .url 檔案的名稱 (不需包含 .url 副檔名，腳本會自動添加)。\n"
+                              "例如：abc"))
+
+    args = parser.parse_args()
+
+    create_internet_shortcut(args.url, args.name)

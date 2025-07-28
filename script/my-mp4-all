@@ -1,0 +1,24 @@
+#!/usr/bin/env python3
+import subprocess
+import os
+
+
+def find_mp4_files_by_size():
+
+    mp4_files = []
+    for root, _, files in os.walk('.'):
+        for file in files:
+            if file.lower().endswith(".mp4"):
+                file_path = os.path.join(root, file)
+                if 'crf' in file_path:
+                    continue
+                mp4_files.append(file_path)
+
+    return mp4_files
+
+
+found_files = find_mp4_files_by_size()
+
+cmd = ["my", "mp4", *found_files, "-m", "--crf", "28"]
+print(cmd)
+subprocess.run(cmd, check=True)
