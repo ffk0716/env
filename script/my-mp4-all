@@ -8,10 +8,11 @@ def find_mp4_files_by_size():
     mp4_files = []
     for root, _, files in os.walk('.'):
         for file in files:
+            file_path = os.path.join(root, file)
             if file.lower().endswith(".mp4"):
-                file_path = os.path.join(root, file)
-                if 'crf' in file_path:
-                    continue
+                if not 'crf' in file_path:
+                    mp4_files.append(file_path)
+            elif file.lower().endswith(".mov"):
                 mp4_files.append(file_path)
 
     return mp4_files

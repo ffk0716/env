@@ -5,7 +5,7 @@ import os
 import argparse
 
 
-def concatenate_videos(video_list, output_filename):
+def concatenate_videos(video_list, output_filename, copy, fast):
 
     temp_file_path = "input_videos_for_concat.txt"
     with open(temp_file_path, "w") as f:
@@ -15,7 +15,23 @@ def concatenate_videos(video_list, output_filename):
                 continue
             f.write(f"file '{video}'\n")
 
-    ffmpeg_command = ["ffmpeg", "-f", "concat", "-safe", "0", "-i", temp_file_path, "-c", "copy", output_filename]
+    cmd_a = []
+    cmd = []
+    if copy:
+        cmd = ["-c", "copy"]
+    else:
+        cmd += ["-fps_mode", "cfr"]
+        if fast:
+            cmd += ["-c:v", "h264_videotoolbox"]
+            cmd_a += ["-hwaccel", "videotoolbox"]
+            cmd += ["-vf", "scale=160:-1"]
+            cmd += ['-preset', 'ultrafast']
+            cmd += ["-crf", "50"]
+        else:
+            cmd += ["-c:v", "libx265"]
+            cmd += ['-tag:v', 'hvc1']
+            cmd += ["-crf", "28"]
+    ffmpeg_command = ["ffmpeg", *cmd_a, "-f", "concat", "-safe", "0", "-i", temp_file_path, *cmd, output_filename]
 
     print(' '.join(ffmpeg_command))
 
@@ -42,6 +58,8 @@ if __name__ == "__main__":
                         help=("要合併的輸入影片檔案路徑。\n"
                               "可以輸入多個檔案名，用空格分隔，例如：\n"
                               "  video1.mp4 video2.mp4 video3.mp4"))
+    parser.add_argument('-c', '--copy', action="store_true", help='copy instead re-encode')
+    parser.add_argument('-f', '--fast', action="store_true", help='fast encoding to check format')
 
     parser.add_argument(
         "-o",
@@ -53,4 +71,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # 呼叫合併函數
-    concatenate_videos(args.input, args.output)
+    concatenate_videos(args.input, args.output, args.copy, args.fast)
