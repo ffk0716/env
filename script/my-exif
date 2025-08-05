@@ -75,8 +75,10 @@ class tag_agent():
             self.cache = self.et.get_tags(fname, self.tags)[0]
 
         hit = [self.cache[t] for t in tag_name if t in self.cache]
-        assert len(hit) <= 1, f'multiple tag name hit: {hit}'
-        if len(hit) == 1:
+        if len(hit) > 1:
+            if args.verbose >= 3:
+                print(f'warning: multiple tag name hit: {hit}')
+        if len(hit) >= 1:
             return hit[0]
         return None
 

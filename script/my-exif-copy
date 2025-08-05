@@ -1,0 +1,23 @@
+#!/usr/bin/env python3
+from exif import exif
+import argparse
+import os
+
+
+def get_dst(src):
+    name, ext = os.path.splitext(src)
+    yield f'{name}.h265.crf20.mp4'
+    yield f'{name}.h265.crf28.mp4'
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('-n', '--dry', action="store_true", help='dry run')
+    args = parser.parse_args()
+
+    flist = exif.find_mp4_files()
+    for src in flist:
+        for dst in get_dst(src):
+            if not os.path.exists(dst):
+                continue
+            exif.copy_model(src, dst, args.dry)

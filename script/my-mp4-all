@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import subprocess
+import argparse
 import os
 
 
@@ -12,14 +13,17 @@ def find_mp4_files_by_size():
             if file.lower().endswith(".mp4"):
                 if not 'crf' in file_path:
                     mp4_files.append(file_path)
-            elif file.lower().endswith(".mov"):
-                mp4_files.append(file_path)
 
-    return mp4_files
+    return sorted(mp4_files)
 
 
-found_files = find_mp4_files_by_size()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('--crf', type=int, default=20, help='CRF')
+    args = parser.parse_args()
 
-cmd = ["my", "mp4", *found_files, "-m", "--crf", "28"]
-print(cmd)
-subprocess.run(cmd, check=True)
+    found_files = find_mp4_files_by_size()
+
+    cmd = ["my", "mp4", *found_files, "-m", "--crf", str(args.crf)]
+    print(cmd)
+    subprocess.run(cmd, check=True)
