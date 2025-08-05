@@ -21,7 +21,7 @@ class exif_agent():
             return None
 
     def write(self, tag_name, tag_value):
-        cmd = ['exiftool', f'-{tag_name}={tag_value}', self.fname]
+        cmd = ['exiftool', f'-{tag_name}={tag_value}', '-overwrite_original', self.fname]
         subprocess.run(cmd, capture_output=True, text=True, check=True)
         print(f"Successfully wrote '{tag_value}' to tag '{tag_name}' in '{self.fname}'.")
 
@@ -49,6 +49,15 @@ def get_model(f):
     for tag, v in devices.items():
         if v == f_exif.read(tag):
             return tag, v
+
+    cmd = ['exiftool', '-G', '-s', f]
+    result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+    n, ext = os.path.splitext(f)
+    log = f'{n}_exif.txt'
+    with open(log, 'w') as f:
+        f.write(result.stdout)
+    cmd = ['vi', log]
+    subprocess.run(cmd)
     assert False
 
 

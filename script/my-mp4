@@ -93,7 +93,7 @@ def main():
             d1 = get_duration(old_name)
             d2 = get_duration(new_name)
             error = abs(d1 - d2) / d1
-            if error < 0.01:
+            if error < 0.03:
                 print(f"{new_name} exist with error={error:.2f}, skip")
                 skip = True
             else:

@@ -4,7 +4,7 @@ import argparse
 import os
 
 
-def find_mp4_files_by_size():
+def find_mp4_files():
 
     mp4_files = []
     for root, _, files in os.walk('.'):
@@ -20,10 +20,13 @@ def find_mp4_files_by_size():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--crf', type=int, default=20, help='CRF')
+    parser.add_argument('-v', '--verbose', action="store_true", help='verbose')
     args = parser.parse_args()
 
-    found_files = find_mp4_files_by_size()
+    found_files = find_mp4_files()
 
     cmd = ["my", "mp4", *found_files, "-m", "--crf", str(args.crf)]
+    if args.verbose:
+        cmd += ["-v"]
     print(cmd)
     subprocess.run(cmd, check=True)
