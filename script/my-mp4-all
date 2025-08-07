@@ -21,12 +21,18 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--crf', type=int, default=20, help='CRF')
     parser.add_argument('-v', '--verbose', action="store_true", help='verbose')
+    parser.add_argument('-r', '--remove', action="store_true", help='remove input video')
     args = parser.parse_args()
 
     found_files = find_mp4_files()
 
+    if not found_files:
+        print('No valid mp4 file found')
+        exit()
     cmd = ["my", "mp4", *found_files, "-m", "--crf", str(args.crf)]
     if args.verbose:
         cmd += ["-v"]
+    if args.remove:
+        cmd += ["-r"]
     print(cmd)
     subprocess.run(cmd, check=True)

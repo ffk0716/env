@@ -16,7 +16,9 @@ class exif_agent():
         metadata = json.loads(result.stdout)
 
         if metadata and tag_name in metadata[0]:
-            return metadata[0][tag_name]
+            v = metadata[0][tag_name]
+            v = v.lstrip("\x15")
+            return v
         else:
             return None
 
@@ -41,15 +43,22 @@ def find_mp4_files():
     return sorted(mp4_files)
 
 
-devices = {'Encoder': 'DJI OsmoAction4', 'DeviceModelName': 'FDR-AX43A', 'Model': 'iPhone 13 mini'}
+devices = {
+    'Encoder': ['DJI OsmoAction4', 'DJIAction2'],
+    'DeviceModelName': ['FDR-AX43A'],
+    'Model': ['iPhone 13 mini', 'Osmo Pocket'],
+    'CompressorName': ['GoPro AVC encoder']
+}
 
 
 def get_model(f):
     f_exif = exif_agent(f)
-    for tag, v in devices.items():
-        if v == f_exif.read(tag):
-            return tag, v
-
+    for tag, vs in devices.items():
+        fv = f_exif.read(tag)
+        if fv in vs:
+            return tag, fv
+        if fv:
+            print(tag, fv)
     cmd = ['exiftool', '-G', '-s', f]
     result = subprocess.run(cmd, capture_output=True, text=True, check=True)
     n, ext = os.path.splitext(f)
@@ -64,7 +73,7 @@ def get_model(f):
 def get_model2(f):
     f_exif = exif_agent(f)
     model = f_exif.read('Model')
-    if model in devices.values():
+    if any(model in tags for tags in devices.values()):
         return model
     return None
 
@@ -84,7 +93,10 @@ def copy_model(src, dst, dry=False):
             return f'copy(dry): exif model {src_model} -> {dst_model}'
         else:
             set_model(dst, src_model)
-            assert (src_model == get_model2(dst))
+            new_dst_model = get_model2(dst)
+            if src_model != new_dst_model:
+                print(src_model, new_dst_model)
+            assert (src_model == new_dst_model)
             return f'copy: exif model {src_model} -> {dst_model}'
 
 
