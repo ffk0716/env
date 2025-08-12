@@ -46,7 +46,7 @@ def find_mp4_files():
 devices = {
     'Encoder': ['DJI OsmoAction4', 'DJIAction2'],
     'DeviceModelName': ['FDR-AX43A'],
-    'Model': ['iPhone 13 mini', 'Osmo Pocket'],
+    'Model': ['iPhone 13 mini', 'Osmo Pocket', 'DSC-RX100M3'],
     'CompressorName': ['GoPro AVC encoder']
 }
 
@@ -65,6 +65,7 @@ def get_model(f):
     log = f'{n}_exif.txt'
     with open(log, 'w') as f:
         f.write(result.stdout)
+    return "N/A", "unknown"
     cmd = ['vi', log]
     subprocess.run(cmd)
     assert False
@@ -73,9 +74,7 @@ def get_model(f):
 def get_model2(f):
     f_exif = exif_agent(f)
     model = f_exif.read('Model')
-    if any(model in tags for tags in devices.values()):
-        return model
-    return None
+    return model
 
 
 def set_model(f, v):
@@ -95,7 +94,7 @@ def copy_model(src, dst, dry=False):
             set_model(dst, src_model)
             new_dst_model = get_model2(dst)
             if src_model != new_dst_model:
-                print(src_model, new_dst_model)
+                print(f'{src_model} != {new_dst_model}')
             assert (src_model == new_dst_model)
             return f'copy: exif model {src_model} -> {dst_model}'
 
