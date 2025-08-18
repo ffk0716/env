@@ -47,8 +47,11 @@ devices = {
     'Encoder': ['DJI OsmoAction4', 'DJIAction2'],
     'DeviceModelName': ['FDR-AX43A'],
     'Model': ['iPhone 13 mini', 'Osmo Pocket', 'DSC-RX100M3'],
-    'CompressorName': ['GoPro AVC encoder']
+    'CompressorName': ['GoPro AVC encoder'],
+    'HandlerDescription': ['\x10INS.HVC']
 }
+
+rename = {'\x10INS.HVC': 'Insta360 Ace Pro 2'}
 
 
 def get_model(f):
@@ -56,9 +59,8 @@ def get_model(f):
     for tag, vs in devices.items():
         fv = f_exif.read(tag)
         if fv in vs:
+            fv = rename.get(fv, fv)
             return tag, fv
-        if fv:
-            print(tag, fv)
     cmd = ['exiftool', '-G', '-s', f]
     result = subprocess.run(cmd, capture_output=True, text=True, check=True)
     n, ext = os.path.splitext(f)

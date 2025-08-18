@@ -4,15 +4,16 @@ import argparse
 import os
 
 
-def find_mp4_files():
+def find_mp4_files(ext):
 
     mp4_files = []
     for root, _, files in os.walk('.'):
         for file in files:
             file_path = os.path.join(root, file)
-            if file.lower().endswith(".mp4") or file.lower().endswith(".mts"):
-                if not 'crf' in file_path:
-                    mp4_files.append(file_path)
+            for e in ext:
+                if file.lower().endswith(e):
+                    if not 'crf' in file_path:
+                        mp4_files.append(file_path)
 
     return sorted(mp4_files)
 
@@ -22,9 +23,10 @@ if __name__ == "__main__":
     parser.add_argument('--crf', type=int, default=20, help='CRF')
     parser.add_argument('-v', '--verbose', action="store_true", help='verbose')
     parser.add_argument('-r', '--remove', action="store_true", help='remove input video')
+    parser.add_argument('-e', '--ext', nargs='+', help='input file format')
     args = parser.parse_args()
 
-    found_files = find_mp4_files()
+    found_files = find_mp4_files(ext=args.ext)
 
     if not found_files:
         print('No valid mp4 file found')

@@ -56,6 +56,8 @@ def main():
 
     # Transfer
     report = []
+    total_size_a = 0
+    total_size_b = 0
     for old_name in args.input:
         if not os.path.isfile(old_name):
             print(f'error: {old_name} does not exist!')
@@ -111,6 +113,8 @@ def main():
                 os.remove(tmp_name)
 
         # Report
+        total_size_a += os.path.getsize(old_name)
+        total_size_b += os.path.getsize(new_name)
         s = print_size(old_name, new_name)
         print(s)
         copy_model = exif.copy_model(old_name, new_name)
@@ -122,6 +126,11 @@ def main():
     print("==== Final report ====")
     for r in report:
         print(r)
+    r = (total_size_b / total_size_a - 1) * 100
+    total_size_a = humanize.naturalsize(total_size_a)
+    total_size_b = humanize.naturalsize(total_size_b)
+    s = f"{r:+.1f}%: {total_size_a} -> {total_size_b}"
+    print(f'{s}: total')
 
 
 main()
