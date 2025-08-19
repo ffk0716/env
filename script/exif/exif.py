@@ -48,10 +48,10 @@ devices = {
     'DeviceModelName': ['FDR-AX43A'],
     'Model': ['iPhone 13 mini', 'Osmo Pocket', 'DSC-RX100M3'],
     'CompressorName': ['GoPro AVC encoder'],
-    'HandlerDescription': ['\x10INS.HVC']
+    'HandlerDescription': ['\x10INS.HVC', '\x10INS.AAC']
 }
 
-rename = {'\x10INS.HVC': 'Insta360 Ace Pro 2'}
+rename = {'\x10INS.HVC': 'Insta360 Ace Pro 2', '\x10INS.AAC': 'Insta360 Ace Pro 2'}
 
 
 def get_model(f):
