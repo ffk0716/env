@@ -47,6 +47,7 @@ def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('input', nargs='+', help='input video')
     parser.add_argument('-r', '--remove', action="store_true", help='remove input video')
+    parser.add_argument('--threshold', type=int, default=95, help='minimal percentage to remove input video')
     parser.add_argument('-m', '--no-metadata', action="store_true", help='copy metadata')
     parser.add_argument('-n', '--dry', action="store_true", help='dry run')
     parser.add_argument('-v', '--verbose', action="store_true", help='verbose')
@@ -121,7 +122,10 @@ def main():
         report.append(f"{s}: {old_name} -> {new_name}, {copy_model}")
         # Clean up
         if args.remove:
-            if not args.dry:
+            sa = os.path.getsize(old_name)
+            sb = os.path.getsize(new_name)
+            do_remove = (1 - sb / sa) > (args.threshold / 100)
+            if not args.dry and do_remove:
                 os.remove(old_name)
     print("==== Final report ====")
     for r in report:

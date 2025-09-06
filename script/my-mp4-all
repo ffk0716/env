@@ -23,6 +23,7 @@ if __name__ == "__main__":
     parser.add_argument('--crf', type=int, default=20, help='CRF')
     parser.add_argument('-v', '--verbose', action="store_true", help='verbose')
     parser.add_argument('-r', '--remove', action="store_true", help='remove input video')
+    parser.add_argument('-t', '--threshold', default=95, help='minimal percentage to remove input video')
     parser.add_argument('-e', '--ext', nargs='+', help='input file format')
     args = parser.parse_args()
 
@@ -32,6 +33,7 @@ if __name__ == "__main__":
         print('No valid mp4 file found')
         exit()
     cmd = ["my", "mp4", *found_files, "-m", "--crf", str(args.crf)]
+    cmd += ['--threshold', str(args.threshold)]
     if args.verbose:
         cmd += ["-v"]
     if args.remove:
