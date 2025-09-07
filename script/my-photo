@@ -5,6 +5,7 @@ import argparse
 
 parser = argparse.ArgumentParser("my photo")
 parser.add_argument('-n', '--dry', action="store_true", help='dry run')
+parser.add_argument('-y', '--year', action="store_true", help='dry run')
 args = parser.parse_args()
 
 for f in os.listdir():
@@ -12,12 +13,13 @@ for f in os.listdir():
         m = re.match(r'(\d{4}-\d{2}-\d{2}) \d{2}.\d{2}.\d{2}.*', f)
         if m:
             dirname = m.group(1)
-            dirname = os.path.join(dirname[:4], dirname)
+            if args.year:
+                dirname = os.path.join(dirname[:4], dirname)
             os.makedirs(dirname, exist_ok=True)
             if not args.dry:
                 os.rename(f, os.path.join(dirname, f))
             print(f'move {f} to {dirname}')
-    elif os.path.isdir(f):
+    elif os.path.isdir(f) and args.year:
         m = re.match(r'(\d{4})-\d{2}-\d{2}', f)
         if m:
             dirname = m.group(1)
