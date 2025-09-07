@@ -84,7 +84,8 @@ def main():
             cmd += ['-t', args.time]
 
         cmd = ['ffmpeg', '-i', old_name] + cmd
-        print(f"==== {old_name} -> {new_name} ====")
+        dirname = os.path.dirname(old_name)
+        print(f"==== {old_name} -> {new_name} ==== at {dirname}")
         c = get_codec(old_name)
         total_seconds = get_duration(old_name)
         delta = datetime.timedelta(seconds=total_seconds)

@@ -10,10 +10,13 @@ def find_mp4_files(ext):
     for root, _, files in os.walk('.'):
         for file in files:
             file_path = os.path.join(root, file)
-            for e in ext:
-                if file.lower().endswith(e):
-                    if not 'crf' in file_path:
-                        mp4_files.append(file_path)
+            if not any(file.lower().endswith(e) for e in ext):
+                continue
+            if 'crf' in file_path:  # Don't re-encode mp4 which is already encode
+                continue
+            if 'nre' in file_path:  # nre stand for No Re-Encode
+                continue
+            mp4_files.append(file_path)
 
     return sorted(mp4_files)
 
