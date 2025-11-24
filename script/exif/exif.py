@@ -46,7 +46,7 @@ def find_mp4_files():
 devices = {
     'Encoder': ['DJI OsmoAction4', 'DJIAction2'],
     'DeviceModelName': ['FDR-AX43A'],
-    'Model': ['iPhone 13 mini', 'Osmo Pocket', 'DSC-RX100M3'],
+    'Model': ['iPhone Air', 'iPhone 13 mini', 'Osmo Pocket', 'DSC-RX100M3'],
     'CompressorName': ['GoPro AVC encoder'],
     'HandlerDescription': ['\x10INS.HVC', '\x10INS.AAC']
 }

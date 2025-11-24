@@ -135,6 +135,7 @@ class file_agent():
                     self.create_time += self.timezone
                 else:
                     self.create_time += dt.timedelta(hours=default_time_zone)
+            return
 
     def set_vb(self, n, tail):
         if self.tail == None or n <= self.verbose_level:

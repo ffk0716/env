@@ -6,6 +6,7 @@ import datetime
 import humanize
 import os
 import shutil
+import shlex
 import subprocess
 import sys
 import tempfile
@@ -75,6 +76,7 @@ def main():
             cmd += ['-loglevel', 'quiet', '-stats']
         if not args.no_metadata:
             cmd += ['-map', '0']
+        cmd += ['-map', '0:v:0', '-map', '0:a:0']
         cmd += ['-copy_unknown', '-map_metadata', '0']
         #meta.update({'preset': 'veryslow'})
         cmd += ['-c:v', 'libx265']
@@ -109,7 +111,7 @@ def main():
                 if os.path.isfile(tmp_name):
                     os.remove(tmp_name)
                 cmd = cmd + [tmp_name]
-                print(' '.join(cmd))
+                print(shlex.join(cmd))
                 subprocess.run(cmd, check=True, stderr=sys.stderr)
                 shutil.copyfile(tmp_name, new_name)
                 os.remove(tmp_name)
