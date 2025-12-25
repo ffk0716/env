@@ -1,15 +1,22 @@
 #!/usr/bin/env python3
 
-import argparse
 from exif import exif
+from pathlib import Path
+import argparse
 import datetime
 import humanize
 import os
-import shutil
 import shlex
+import shutil
 import subprocess
 import sys
 import tempfile
+
+
+def add_suffix_to_filename(file_path, suffix):
+    path = Path(file_path)
+    new_filename = f"{path.stem}{suffix}{path.suffix}"
+    return str(path.with_name(new_filename))
 
 
 def print_size(fa, fb):
@@ -48,7 +55,7 @@ def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('input', nargs='+', help='input video')
     parser.add_argument('-r', '--remove', action="store_true", help='remove input video')
-    parser.add_argument('--threshold', type=int, default=95, help='minimal percentage to remove input video')
+    parser.add_argument('--threshold', type=int, default=80, help='minimal percentage to remove input video')
     parser.add_argument('-m', '--no-metadata', action="store_true", help='copy metadata')
     parser.add_argument('-n', '--dry', action="store_true", help='dry run')
     parser.add_argument('-v', '--verbose', action="store_true", help='verbose')
@@ -60,6 +67,7 @@ def main():
     report = []
     total_size_a = 0
     total_size_b = 0
+    to_file = []
     for old_name in args.input:
         if not os.path.isfile(old_name):
             print(f'error: {old_name} does not exist!')
@@ -122,14 +130,24 @@ def main():
         s = print_size(old_name, new_name)
         print(s)
         copy_model = exif.copy_model(old_name, new_name)
-        report.append(f"{s}: {old_name} -> {new_name}, {copy_model}")
+        full_s = f"{s}: {old_name} -> {new_name}, {copy_model}"
+        report.append(full_s)
         # Clean up
         if args.remove:
+            to_file.append([False, full_s])
             sa = os.path.getsize(old_name)
             sb = os.path.getsize(new_name)
             do_remove = (1 - sb / sa) > (args.threshold / 100)
-            if not args.dry and do_remove:
-                os.remove(old_name)
+            if sa < (1024 * 1024 * 10):
+                do_remove = False
+            cmd = ['rm', '-fv', old_name]
+            to_file.append([do_remove, shlex.join(cmd)])
+            cmd = ['mv', old_name, add_suffix_to_filename(old_name, '.nre')]
+            to_file.append([not do_remove, shlex.join(cmd)])
+            cmd = ['rm', '-fv', new_name]
+            to_file.append([not do_remove, shlex.join(cmd)])
+            to_file.append([True, ''])
+
     print("==== Final report ====")
     for r in report:
         print(r)
@@ -138,6 +156,21 @@ def main():
     total_size_b = humanize.naturalsize(total_size_b)
     s = f"{r:+.1f}%: {total_size_a} -> {total_size_b}"
     print(f'{s}: total')
+    if args.remove:
+        fname = 'remove_mp4.sh'
+        with open(fname, 'w') as f:
+            f.write('#/bin/bash\n')
+            f.write('set -eux\n')
+            f.write('\n')
+            f.write('\n')
+            for do_remove, l in to_file:
+                if do_remove:
+                    f.write(f'{l}\n')
+                else:
+                    f.write(f'# {l}\n')
+        os.chmod(fname, 0o755)
+        cmd = ['vi', fname]
+        subprocess.run(cmd)
 
 
 main()
