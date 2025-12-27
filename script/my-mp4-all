@@ -16,6 +16,9 @@ def find_mp4_files(ext):
                 continue
             if 'nre' in file_path:  # nre stand for No Re-Encode
                 continue
+            size = os.path.getsize(file_path)
+            if size < (1024 * 1024 * 10):
+                continue
             mp4_files.append(file_path)
 
     return sorted(mp4_files)
