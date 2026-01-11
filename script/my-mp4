@@ -128,9 +128,9 @@ def main():
         total_size_a += os.path.getsize(old_name)
         total_size_b += os.path.getsize(new_name)
         s = print_size(old_name, new_name)
-        print(s)
         copy_model = exif.copy_model(old_name, new_name)
         full_s = f"{s}: {old_name} -> {new_name}, {copy_model}"
+        print(full_s)
         report.append(full_s)
         # Clean up
         if args.remove:
