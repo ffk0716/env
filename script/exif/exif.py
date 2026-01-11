@@ -61,7 +61,7 @@ def get_model(f):
         if fv in vs:
             fv = rename.get(fv, fv)
             return tag, fv
-        if tag == 'Model' and 'iPhone' in fv:
+        if tag == 'Model' and fv and 'iPhone' in fv:
             return tag, fv
     cmd = ['exiftool', '-G', '-s', f]
     result = subprocess.run(cmd, capture_output=True, text=True, check=True)
