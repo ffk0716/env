@@ -66,7 +66,11 @@ def get_model(f):
                 if m in fv:
                     return tag, fv
     cmd = ['exiftool', '-G', '-s', f]
-    result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+    except UnicodeDecodeError as e:
+        print(f"解碼失敗：位置 {e.start} 附近的字元無法解析。")
+        return None, None
     n, ext = os.path.splitext(f)
     log = f'{n}_exif.txt'
     with open(log, 'w') as f:
