@@ -69,7 +69,7 @@ def get_model(f):
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
     except UnicodeDecodeError as e:
-        print(f"解碼失敗：位置 {e.start} 附近的字元無法解析。")
+        print(f"error: 位置 {e.start} 附近的字元無法解析。")
         return None, None
     n, ext = os.path.splitext(f)
     log = f'{n}_exif.txt'
@@ -93,7 +93,7 @@ def copy_model(src, dst, dry=False):
     src_tag, src_model = get_model(src)
     dst_model = get_model2(dst)
     if src_model is None:
-        return f"skip: exif model copy failed, None vs {dst_model}"
+        return f"error: exif model copy failed, None vs {dst_model}"
     if src_model == dst_model:
         return f'skip: exif model match {src_model} == {dst_model}'
     else:
