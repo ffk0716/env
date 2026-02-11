@@ -2,10 +2,9 @@
 
 import argparse
 import datetime as dt
-import atexit
-import exiftool
 import os
 import re
+from exif import exif
 
 dropbox_format = '%Y-%m-%d %H.%M.%S'
 dropbox_re = re.compile(r'(\d{4}-\d{2}-\d{2} \d{2}\.\d{2}\.\d{2})')
@@ -50,92 +49,62 @@ def split_path(path):
     return head, root, ext.lower().lstrip('.')
 
 
-class tag_agent():
-
-    et = exiftool.ExifToolHelper()
-    atexit.register(lambda: tag_agent.et.terminate())
-
-    def __init__(self):
-        self.fname = None
-        self.tags = set()
-        self.cache = None
-
-    def get_tag(self, fname, tag_name):
-        if not isinstance(tag_name, list):
-            tag_name = [tag_name]
-        if fname != self.fname:
-            self.fname = fname
-            self.cache = None
-        t = set(tag_name)
-        if not t.issubset(self.tags):
-            self.tags.update(t)
-            self.cache = None
-
-        if self.cache == None:
-            self.cache = self.et.get_tags(fname, self.tags)[0]
-
-        hit = [self.cache[t] for t in tag_name if t in self.cache]
-        if len(hit) > 1:
-            if args.verbose >= 3:
-                print(f'warning: multiple tag name hit: {hit}')
-        if len(hit) >= 1:
-            return hit[0]
-        return None
-
-
 class file_agent():
-    ta = tag_agent()
 
     def __init__(self, fname, default_time_zone):
         self.fname = fname
-        self.create_time = None
-        self.timezone = None
+        self.default_time_zone = default_time_zone
+        self.ta = exif.tag_agent(self.fname)
         self.warning_msg = []
         self.no_time_reason = 'no tag'
         self.author = None
         self.model = None
         self.tail = None
         self.verbose_level = 2
-        self.author = self.ta.get_tag(self.fname, ["EXIF:Artist", "QuickTime:Artist"])
+        self.author = self.ta.get_tag(["EXIF:Artist", "QuickTime:Artist"])
         _, _, ext = split_path(fname)
-        self.model = self.ta.get_tag(fname,
-                                     ["EXIF:Model", "QuickTime:Model", "XML:DeviceModelName", "QuickTime:Encoder"])
+        self.model = self.ta.get_tag(["EXIF:Model", "QuickTime:Model", "XML:DeviceModelName", "QuickTime:Encoder"])
+        self.create_time, self.timezone = self.get_time()
+
+    def get_time(self):
         # jpg files
-        time_string = self.ta.get_tag(fname, "EXIF:CreateDate")
+        time_string = self.ta.get_tag("EXIF:CreateDate")
+        tz = False
         if time_string != None:
-            assert ext in ["jpg", "heic", "jpeg"], f"unknown extension: {ext}"
             if time_string == "0000:00:00 00:00:00":
-                self.no_time_reason = "0000"
+                return None, None
             else:
-                self.create_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
-            time_string = self.ta.get_tag(fname, "EXIF:OffsetTime")
+                create_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
+            time_string = self.ta.get_tag("EXIF:OffsetTime")
             if time_string != None:
-                self.timezone = dt.datetime.strptime(time_string, '%z').utcoffset()
-            return
+                timezone = dt.timezone(dt.datetime.strptime(time_string, '%z').utcoffset())
+                tz = True
+                create_time.replace(tzinfo=timezone)
+            return create_time, tz
         # mov files
-        time_string = self.ta.get_tag(fname, ["QuickTime:CreationDate", "H264:DateTimeOriginal"])
+        time_string = self.ta.get_tag(["QuickTime:CreationDate", "H264:DateTimeOriginal"])
         if time_string != None:
-            assert ext in ["mov", "mp4"], f"unknown extension: {ext}"
-            self.create_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S%z')
-            self.timezone = self.create_time.utcoffset()
-            return
+            create_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S%z')
+            tz = True
+            return create_time, tz
         # mp4 files
-        time_string = self.ta.get_tag(fname, ["QuickTime:CreateDate"])
+        time_string = self.ta.get_tag(["QuickTime:CreateDate"])
         if time_string != None:
-            assert ext in ["mp4", "mov"], f"unknown extension: {ext}"
             if time_string == "0000:00:00 00:00:00":
                 self.no_time_reason = "0000"
             else:
-                self.create_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
-            self.timezone = self.ta.get_tag(fname, "QuickTime:TimeZone")
-            if self.timezone != None:
-                self.timezone = dt.timedelta(minutes=int(self.timezone))
-            if self.create_time:
-                if self.timezone:
-                    self.create_time += self.timezone
-                else:
-                    self.create_time += dt.timedelta(hours=default_time_zone)
-            return
+                utc_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S').replace(tzinfo=dt.timezone.utc)
+            timezone = self.ta.get_tag("QuickTime:TimeZone")
+            tz = False
+            if timezone != None:
+                timezone = dt.timezone(dt.timedelta(minutes=int(timezone)))
+                tz = True
+            else:
+                timezone = dt.timezone(dt.timedelta(hours=self.default_time_zone))
+            if utc_time:
+                create_time = utc_time.astimezone(timezone)
+            return create_time, tz
+        return None, None
 
     def set_vb(self, n, tail):
         if self.tail == None or n <= self.verbose_level:
@@ -144,7 +113,7 @@ class file_agent():
             self.verbose_level = n
 
     def get_m(self):
-        time_string = self.ta.get_tag(self.fname, "File:FileModifyDate")
+        time_string = self.ta.get_tag("File:FileModifyDate")
         assert time_string
         return dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S%z')
 
@@ -156,14 +125,14 @@ class file_agent():
         info_str = ''
 
         if self.create_time:
-            info_str += self.create_time.strftime(dropbox_format)
+            if self.timezone:
+                s = self.create_time.strftime('%Y-%m-%d %H.%M.%S %:z')
+            else:
+                s = self.create_time.strftime('%Y-%m-%d %H.%M.%S')
         else:
-            info_str += f'{self.no_time_reason:19}'
+            s = self.no_time_reason
+        info_str += f'{s:26}'
         info_str += ' '
-        if self.timezone:
-            info_str += delta_to_str(self.timezone)
-        else:
-            info_str += ' ' * 8
         info_str += p(self.author, 10)
         info_str += p(self.model, 15)
         print(f"{info_str}: {self.tail}")
@@ -315,7 +284,8 @@ if __name__ == '__main__':
         fa = handle(fname)
         if fa.verbose_level <= args.verbose:
             prefix_n = len(str(total_n))
-            print(f"({i:>{prefix_n}}/{total_n}) {fix_width(fname, max_fname_width)}: ", end='')
+            n = fix_width(fname, max_fname_width)
+            print(f"({i:>{prefix_n}}/{total_n}) {n}: ", end='')
             fa.print()
         i += 1
 

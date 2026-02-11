@@ -1,31 +1,10 @@
 import subprocess
 import json
+import datetime as dt
 import argparse
 import os
-
-
-class exif_agent():
-
-    def __init__(self, fname):
-        self.fname = fname
-
-    def read(self, tag_name):
-        cmd = ['exiftool', '-j', '-n', f'-{tag_name}', self.fname]
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-
-        metadata = json.loads(result.stdout)
-
-        if metadata and tag_name in metadata[0]:
-            v = metadata[0][tag_name]
-            v = v.lstrip("\x15")
-            return v
-        else:
-            return None
-
-    def write(self, tag_name, tag_value):
-        cmd = ['exiftool', f'-{tag_name}={tag_value}', '-overwrite_original', self.fname]
-        subprocess.run(cmd, capture_output=True, text=True, check=True)
-        print(f"Successfully wrote '{tag_value}' to tag '{tag_name}' in '{self.fname}'.")
+import exiftool
+import atexit
 
 
 def find_mp4_files():
@@ -43,55 +22,83 @@ def find_mp4_files():
     return sorted(mp4_files)
 
 
-devices = {
-    'Encoder': ['DJI OsmoAction4', 'DJIAction2'],
-    'DeviceModelName': ['FDR-AX43A'],
-    'Model': ['Osmo Pocket', 'DSC-RX100M3'],
-    'CompressorName': ['GoPro AVC encoder'],
-    'HandlerDescription': ['\x10INS.HVC', '\x10INS.AAC']
-}
+class tag_agent:
+    _et = None
 
-rename = {'\x10INS.HVC': 'Insta360 Ace Pro 2', '\x10INS.AAC': 'Insta360 Ace Pro 2'}
+    @classmethod
+    def get_et(cls):
+        if cls._et is None:
+            cls._et = exiftool.ExifToolHelper()
+            atexit.register(lambda: cls._et.terminate())
+        return cls._et
+
+    def __init__(self, fname):
+        self.fname = fname
+        self.et = self.get_et()
+        self.requested_tags = set()
+        self._cache = {}
+
+    def get_tag_all(self, tag_names):
+        if isinstance(tag_names, str):
+            tag_names = [tag_names]
+
+        t_set = set(tag_names)
+
+        missing_tags = t_set - set(self._cache.keys())
+
+        if missing_tags:
+            try:
+                results = self.et.get_tags(self.fname, list(missing_tags))
+                if results:
+                    self._cache.update(results[0])
+            except Exception as e:
+                print(f"讀取 EXIF 失敗: {e}")
+
+        return {t: self._cache.get(t) for t in tag_names if t in self._cache}
+
+    def get_tag(self, tag_name):
+        vs = self.get_tag_all(tag_name)
+        for v in vs.values():
+            return v
+        return None
+
+    def set_tag(self, tag_dict, params=["-overwrite_original"]):
+        try:
+            self.et.set_tags(self.fname, tags=tag_dict, params=params)
+            self._cache.clear()
+            return True
+        except Exception as e:
+            print(f"寫入 EXIF 失敗: {e}")
+            return False
+
+    def shift_create_date(self, hours):
+        tag = "QuickTime:CreateDate"
+        raw_date = self.get_tag(tag)
+
+        dt_format = "%Y:%m:%d %H:%M:%S"
+        utc = dt.datetime.strptime(raw_date, dt_format)
+        utc_new = utc + dt.timedelta(hours=hours)
+        new_date_str = utc_new.strftime(dt_format)
+        print(f'{utc} -> {utc_new}')
+
+        self.set_tag({tag: new_date_str})
+        raw_date = self.get_tag(tag)
+        assert raw_date == new_date_str
 
 
 def get_model(f):
-    f_exif = exif_agent(f)
-    for tag, vs in devices.items():
-        fv = f_exif.read(tag)
-        if fv in vs:
-            fv = rename.get(fv, fv)
-            return tag, fv
-        if tag == 'Model' and fv:
-            for m in ['iPhone', 'iPad', 'Mac']:
-                if m in fv:
-                    return tag, fv
-    cmd = ['exiftool', '-G', '-s', f]
-    try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-    except UnicodeDecodeError as e:
-        print(f"error: 位置 {e.start} 附近的字元無法解析。")
-        return None, None
-    n, ext = os.path.splitext(f)
-    log = f'{n}_exif.txt'
-    with open(log, 'w') as f:
-        f.write(result.stdout)
-    return None, None
-
-
-def get_model2(f):
-    f_exif = exif_agent(f)
-    model = f_exif.read('Model')
-    return model
+    ta = tag_agent(f)
+    return ta.get_tag(["QuickTime:Model", "EXIF:Model", "XML:DeviceModelName", "QuickTime:Encoder"])
 
 
 def set_model(f, v):
-    f_exif = exif_agent(f)
-    f_exif.write('Model', v)
+    ta = tag_agent(f)
+    ta.set_tag({'QuickTime:Model': v})
 
 
 def copy_model(src, dst, dry=False):
-    src_tag, src_model = get_model(src)
-    dst_model = get_model2(dst)
+    src_model = get_model(src)
+    dst_model = get_model(dst)
     if src_model is None:
         return f"error: exif model copy failed, None vs {dst_model}"
     if src_model == dst_model:
@@ -101,7 +108,7 @@ def copy_model(src, dst, dry=False):
             return f'copy(dry): exif model {src_model} -> {dst_model}'
         else:
             set_model(dst, src_model)
-            new_dst_model = get_model2(dst)
+            new_dst_model = get_model(dst)
             if src_model != new_dst_model:
                 print(f'{src_model} != {new_dst_model}')
             assert (src_model == new_dst_model)
