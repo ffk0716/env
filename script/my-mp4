@@ -90,6 +90,7 @@ def main():
         cmd += ['-c:v', 'libx265']
         cmd += ['-tag:v', 'hvc1']
         cmd += ['-crf', f'{args.crf}']
+        # cmd += ['-r', f'60000/1001']
         if args.time != None:
             cmd += ['-t', args.time]
 

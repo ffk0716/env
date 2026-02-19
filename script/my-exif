@@ -155,7 +155,7 @@ if __name__ == '__main__':
                         '--ext',
                         nargs='+',
                         type=str,
-                        default=['jpg', 'mov', 'mp4', 'heic', 'png', 'jpeg'],
+                        default=['jpg', 'mov', 'mp4', 'heic', 'png', 'jpeg', 'hif'],
                         help='handle file only with specified extensions')
     args = parser.parse_args()
 
