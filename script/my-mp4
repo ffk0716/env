@@ -84,7 +84,7 @@ def main():
             cmd += ['-loglevel', 'quiet', '-stats']
         if not args.no_metadata:
             cmd += ['-map', '0']
-        cmd += ['-map', '0:v:0', '-map', '0:a:0']
+        cmd += ['-map', '0:v:0', '-map', '0:a:?']
         cmd += ['-copy_unknown', '-map_metadata', '0']
         #meta.update({'preset': 'veryslow'})
         cmd += ['-c:v', 'libx265']
