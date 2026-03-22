@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
-import subprocess
 import argparse
+import humanize
 import os
+import subprocess
 
 
-def find_mp4_files(ext):
+def find_mp4_files(ext, size):
 
-    mp4_files = []
+    video_files = []
+    total_size = 0
     for root, _, files in os.walk('.'):
         for file in files:
             file_path = os.path.join(root, file)
@@ -16,12 +18,13 @@ def find_mp4_files(ext):
                 continue
             if 'nre' in file_path:  # nre stand for No Re-Encode
                 continue
-            size = os.path.getsize(file_path)
-            if size < (1024 * 1024 * 10):
+            file_size = os.path.getsize(file_path)
+            if file_size < (1024 * 1024 * size):
                 continue
-            mp4_files.append(file_path)
+            total_size += file_size
+            video_files.append(file_path)
 
-    return sorted(mp4_files)
+    return sorted(video_files), total_size
 
 
 if __name__ == "__main__":
@@ -29,11 +32,18 @@ if __name__ == "__main__":
     parser.add_argument('--crf', type=int, default=28, help='CRF')
     parser.add_argument('-v', '--verbose', action="store_true", help='verbose')
     parser.add_argument('-r', '--remove', action="store_true", help='remove input video')
-    parser.add_argument('-t', '--threshold', default=60, help='minimal percentage to remove input video')
-    parser.add_argument('-e', '--ext', nargs='+', default=['mov', 'mp4'], help='input file format')
+    parser.add_argument('-t', '--threshold', default=40, help='minimal percentage to remove input video')
+    parser.add_argument('-s', '--size', type=int, default=10, help='minimal size(MB) of video')
+    parser.add_argument('-e',
+                        '--ext',
+                        nargs='+',
+                        default=['mov', 'mp4', 'wmv', 'mpg', 'mpeg'],
+                        help='input file format')
     args = parser.parse_args()
 
-    found_files = find_mp4_files(ext=args.ext)
+    found_files, total_size = find_mp4_files(ext=args.ext, size=args.size)
+    total_size = humanize.naturalsize(total_size)
+    print(f"total size: {total_size}")
 
     if not found_files:
         for e in args.ext:
@@ -45,5 +55,9 @@ if __name__ == "__main__":
         cmd += ["-v"]
     if args.remove:
         cmd += ["-r"]
-    print(cmd)
-    subprocess.run(cmd, check=True)
+    try:
+        subprocess.run(cmd, check=True, stderr=subprocess.PIPE, text=True)
+
+    except subprocess.CalledProcessError as e:
+        print(f"exit code: {e.returncode}")
+        print(f"stderr: {e.stderr}")

@@ -19,15 +19,12 @@ def add_suffix_to_filename(file_path, suffix):
     return str(path.with_name(new_filename))
 
 
-def print_size(fa, fb):
-    sa = os.path.getsize(fa)
-    sb = os.path.getsize(fb)
-    fan, fae = os.path.splitext(fa)
-    _, fbe = os.path.splitext(fb)
-    r = (sb - sa) / sa * 100
-    sa = humanize.naturalsize(sa)
-    sb = humanize.naturalsize(sb)
-    s = f"{r:+.1f}%: {sa} -> {sb}"
+def print_size(a_size, b_size):
+    rate = (b_size / a_size - 1) * 100
+    s_diff = humanize.naturalsize(a_size - b_size)
+    a_str = humanize.naturalsize(a_size)
+    b_str = humanize.naturalsize(b_size)
+    s = f"{rate:+.1f}%(-{s_diff}): {a_str} -> {b_str}"
     return s
 
 
@@ -84,7 +81,7 @@ def main():
             cmd += ['-loglevel', 'quiet', '-stats']
         if not args.no_metadata:
             cmd += ['-map', '0']
-        cmd += ['-map', '0:v:0', '-map', '0:a:?']
+        cmd += ['-map', '0:v:0', '-map', '0:a:0?']
         cmd += ['-copy_unknown', '-map_metadata', '0']
         #meta.update({'preset': 'veryslow'})
         cmd += ['-c:v', 'libx265']
@@ -126,13 +123,17 @@ def main():
                 os.remove(tmp_name)
 
         # Report
-        total_size_a += os.path.getsize(old_name)
-        total_size_b += os.path.getsize(new_name)
-        s = print_size(old_name, new_name)
-        print(s)
+        size_a = os.path.getsize(old_name)
+        size_b = os.path.getsize(new_name)
+        single_s = print_size(size_a, size_b)
+        print(single_s)
+        total_size_a += size_a
+        total_size_b += size_b
+        total_s = print_size(total_size_a, total_size_b)
+        print(f'{total_s} (total)')
         copy_model = exif.copy_model(old_name, new_name)
         print(copy_model)
-        full_s = f"{s}: {old_name} -> {new_name}, {copy_model}"
+        full_s = f"{single_s}: {old_name} -> {new_name}, {copy_model}"
         report.append(full_s)
         # Clean up
         if args.remove:
@@ -153,11 +154,8 @@ def main():
     print("==== Final report ====")
     for r in report:
         print(r)
-    r = (total_size_b / total_size_a - 1) * 100
-    total_size_a = humanize.naturalsize(total_size_a)
-    total_size_b = humanize.naturalsize(total_size_b)
-    s = f"{r:+.1f}%: {total_size_a} -> {total_size_b}"
-    print(f'{s}: total')
+    total_s = print_size(total_size_a, total_size_b)
+    print(f'{total_s} (total)')
     if args.remove:
         fname = 'remove_mp4.sh'
         with open(fname, 'w') as f:
