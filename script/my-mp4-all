@@ -34,6 +34,7 @@ if __name__ == "__main__":
     parser.add_argument('-r', '--remove', action="store_true", help='remove input video')
     parser.add_argument('-t', '--threshold', default=40, help='minimal percentage to remove input video')
     parser.add_argument('-s', '--size', type=int, default=10, help='minimal size(MB) of video')
+    parser.add_argument('-d', '--debug', action="store_true", help='debug')
     parser.add_argument('-e',
                         '--ext',
                         nargs='+',
@@ -56,7 +57,10 @@ if __name__ == "__main__":
     if args.remove:
         cmd += ["-r"]
     try:
-        subprocess.run(cmd, check=True, stderr=subprocess.PIPE, text=True)
+        if args.debug:
+            subprocess.run(cmd, check=True, stderr=subprocess.PIPE, text=True)
+        else:
+            subprocess.run(cmd, check=True)
 
     except subprocess.CalledProcessError as e:
         print(f"exit code: {e.returncode}")
