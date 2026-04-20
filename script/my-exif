@@ -64,29 +64,26 @@ class file_agent():
         self.author = self.ta.get_tag(["EXIF:Artist", "QuickTime:Artist"])
         _, _, ext = split_path(fname)
         self.model = self.ta.get_tag(["EXIF:Model", "QuickTime:Model", "XML:DeviceModelName", "QuickTime:Encoder"])
-        self.create_time, self.timezone = self.get_time()
+        self.create_time = self.get_time()
 
     def get_time(self):
         # jpg files
         time_string = self.ta.get_tag("EXIF:CreateDate")
-        tz = False
         if time_string != None:
             if time_string == "0000:00:00 00:00:00":
                 return None, None
             else:
-                create_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
+                local_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S')
             time_string = self.ta.get_tag("EXIF:OffsetTime")
             if time_string != None:
                 timezone = dt.timezone(dt.datetime.strptime(time_string, '%z').utcoffset())
-                tz = True
-                create_time.replace(tzinfo=timezone)
-            return create_time, tz
+                local_time = local_time.replace(tzinfo=timezone)
+            return local_time
         # mov files
         time_string = self.ta.get_tag(["QuickTime:CreationDate", "H264:DateTimeOriginal"])
         if time_string != None:
-            create_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S%z')
-            tz = True
-            return create_time, tz
+            local_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S%z')
+            return local_time
         # mp4 files
         time_string = self.ta.get_tag(["QuickTime:CreateDate"])
         if time_string != None:
@@ -96,16 +93,15 @@ class file_agent():
             else:
                 utc_time = dt.datetime.strptime(time_string, '%Y:%m:%d %H:%M:%S').replace(tzinfo=dt.timezone.utc)
             timezone = self.ta.get_tag("QuickTime:TimeZone")
-            tz = False
             if timezone != None:
                 timezone = dt.timezone(dt.timedelta(minutes=int(timezone)))
-                tz = True
             else:
                 timezone = dt.timezone(dt.timedelta(hours=self.default_time_zone))
             if utc_time:
-                utc_time = utc_time.astimezone(timezone)
-            return utc_time, tz
-        return None, None
+                local_time = utc_time.astimezone(timezone)
+                return local_time
+            return None
+        return None
 
     def set_vb(self, n, tail):
         if self.tail == None or n <= self.verbose_level:
@@ -126,10 +122,10 @@ class file_agent():
         info_str = ''
 
         if self.create_time:
-            if self.timezone:
-                s = self.create_time.strftime('%Y-%m-%d %H.%M.%S %:z')
-            else:
+            if self.create_time.tzinfo is None:
                 s = self.create_time.strftime('%Y-%m-%d %H.%M.%S')
+            else:
+                s = self.create_time.strftime('%Y-%m-%d %H.%M.%S %:z')
         else:
             s = self.no_time_reason
         info_str += f'{s:26}'
