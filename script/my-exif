@@ -122,10 +122,10 @@ class file_agent():
         info_str = ''
 
         if self.create_time:
-            if self.create_time.tzinfo is None:
-                s = self.create_time.strftime('%Y-%m-%d %H.%M.%S')
-            else:
+            if self.create_time.tzinfo:
                 s = self.create_time.strftime('%Y-%m-%d %H.%M.%S %:z')
+            else:
+                s = self.create_time.strftime('%Y-%m-%d %H.%M.%S')
         else:
             s = self.no_time_reason
         info_str += f'{s:26}'
