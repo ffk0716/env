@@ -70,7 +70,7 @@ def main():
             print(f'error: {old_name} does not exist!')
         assert (os.path.isfile(old_name))
         file_name, _ = os.path.splitext(old_name)
-        new_name = f"{file_name}.h265.crf{args.crf}"
+        new_name = f"{file_name}.enc"
         if args.time:
             new_name += f".{args.time}s"
         new_name += ".mp4"
